@@ -26,3 +26,9 @@ Romanian dashboard, two daily calendar slots, filterable concept library, review
 Application state is in memory and resets on reload. There is no authentication or backend; do not expose this demo as a private production service. No paid APIs, OAuth flow, background generation, or actual publishing is activated. Settings are UI preferences for this session only; they do not change existing sample concepts. No secrets are required.
 
 `lib/workflow.ts` defines video states, guarded transitions, and provider interfaces for future generators and publishers. Scheduling requires approval, and publishing adapter invocation is guarded. A production backend must enforce authorization and approval against persisted records, validate scheduled dates, track content revisions, and keep credentials server-side. A real provider, durable jobs, storage, OAuth, and authentication belong in later phases.
+
+## Free tarot email flow
+
+A separate public experience now lives at `/tarot-gratuit`; the dashboard is preserved at `/`.
+See [setup, safety gates, consent storage and testing](docs/free-tarot.md).
+Development uses a private mock outbox and sample Romanian interpretation. Production sending is source-locked and cannot be enabled accidentally with credentials. Supabase, AI, bot verification, booking and subscription destinations still require operator configuration before a real launch.
