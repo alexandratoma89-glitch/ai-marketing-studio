@@ -16,7 +16,7 @@ test('free reading signup: required fields, unchecked optional consent, private 
  await page.getByRole('button',{name:'Trimite-mi lectura prin email'}).click();
  await expect(page).toHaveURL(/\/tarot-gratuit\/multumim$/);await expect(page.getByRole('heading',{name:'Mulțumim pentru încredere.'})).toBeVisible();
  await expect(page.locator('body')).not.toContainText(address);await expect(page.locator('body')).not.toContainText('Semnificație simbolică');
- await expect(page.getByRole('link',{name:'Rezervă o lectură'})).toBeVisible();await expect(page.locator('body')).toContainText('49 USD');await expect(page.locator('body')).toContainText('10 USD/lună');
+ await expect(page.getByRole('link',{name:'Rezervă o lectură'})).toBeVisible();await expect(page.locator('body')).toContainText('179 lei');await expect(page.locator('body')).toContainText('29 lei/lună');
  const path=join(tmpdir(),'arcana-private-outbox');const messages=await Promise.all((await readdir(path)).map(async file=>JSON.parse(await readFile(join(path,file),'utf8'))));
  const message=messages.find(m=>m.to===address);expect(message).toBeTruthy();expect(message.html).toContain('Întrebare de reflecție');expect(message.html).toContain('<img');expect(message.html).not.toContain('/confirma');
 });

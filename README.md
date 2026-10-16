@@ -40,3 +40,5 @@ Private launch checklist: `/studio/launch`. It displays configuration presence o
 ## Commercial test integrations
 
 Brevo mock emails, native availability/audio-video bookings, Stripe TEST Checkout and membership, verified webhooks, private management/cancellation, daily delivery worker and delivery logs extend the existing design. Owner controls: `/studio/bookings`; launch settings: `/studio/launch`. No live charges/customer emails are permitted in this release. Full account/API-key/DNS/business checklist and accurate implementation status: [commercial launch guide](docs/commercial-launch.md).
+
+Romanian pricing update (not deployed): private reading **179 lei**, first eligible booking **161,10 lei**, free pull **0 lei**, membership **30 days free then 29 lei/month**. These are final totals; VAT status is unconfirmed and visibly labeled in test mode. Existing contract snapshots are preserved by additive migration 003. See the launch guide before applying it.

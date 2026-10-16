@@ -1,3 +1,4 @@
+import {formatMoney,taxNotice} from './pricing.ts';
 import type {CommerceDb,Job,Order} from './types.ts';
 import type {EmailProvider,Generator,Reading} from '../tarot/types.ts';
 import {drawCard} from '../tarot/deck.ts';
@@ -16,15 +17,15 @@ export async function processJobs(db:CommerceDb,deps:{email:EmailProvider;genera
    if(job.kind==='daily_reading'){
     const card=drawCard();const reading=await deps.generator.generate(card);
     const complete={card,reading};await db.command('update_job',{id:job.id,status:'generated',reading:complete});
-    const message=buildEmail({id:job.id,email:order.email,firstName:order.firstName,createdAt:new Date().toISOString(),status:'generated',policyVersion:'2026-10-16.v1',marketingConsent:false,card,reading:reading as Reading},{siteUrl:deps.origin});
+    const message=buildEmail({id:job.id,email:order.email,firstName:order.firstName,createdAt:new Date().toISOString(),status:'generated',policyVersion:'2026-10-16.v1',marketingConsent:false,card,reading:reading as Reading},{siteUrl:deps.origin,serviceLabel:`Lectură inclusă în abonamentul de ${formatMoney(order.amount,order.currency)}/lună. ${taxNotice(order.tax_status)}`});
     subject=message.subject;text=message.text+`\n\nGestionare și anulare: ${manage}`;html=message.html.replace('</main>',`<p><a href="${escape(manage)}" style="color:#d2adf5">Gestionare și anulare abonament</a></p></main>`);
    }else if(job.kind==='booking_confirmed'){
     subject='Rezervarea ta de test este confirmată · The Divine Work';
-    text=`Bună, ${order.firstName}!\n\nRezervare de TEST confirmată: ${new Date(order.startsAt!).toLocaleString('ro-RO',{timeZone:'Europe/Bucharest'})} (Europe/Bucharest), 30 de minute, ${order.meeting_mode}.\nPreț de test: ${(order.amount/100).toFixed(2)} USD.\nParticipare: ${order.meetingUrl}\n\nLink personal pentru gestionare/anulare: ${manage}`;
+    text=`Bună, ${order.firstName}!\n\nRezervare de TEST confirmată: ${new Date(order.startsAt!).toLocaleString('ro-RO',{timeZone:'Europe/Bucharest'})} (Europe/Bucharest), 30 de minute, ${order.meeting_mode}.\nPreț de test: ${formatMoney(order.amount,order.currency)}. ${taxNotice(order.tax_status)}\nParticipare: ${order.meetingUrl}\n\nLink personal pentru gestionare/anulare: ${manage}`;
    }else if(job.kind==='membership_welcome'){
-    subject='Abonamentul tău de test · The Divine Work';text=`Bună, ${order.firstName}!\n\nAbonament de TEST: ${order.intro_discount?'primele 30 de zile gratuite, apoi 10 USD/lună':'10 USD/lună; perioada de probă a fost deja folosită'}. Lectura zilnică este pregătită după ora 08:00, Europe/Bucharest.\nAnulare și gestionare: ${manage}`;
+    subject='Abonamentul tău de test · The Divine Work';text=`Bună, ${order.firstName}!\n\nAbonament de TEST: ${order.intro_discount?`primele 30 de zile gratuite (0 lei), apoi ${formatMoney(order.amount,order.currency)}/lună`:`${formatMoney(order.amount,order.currency)}/lună; perioada de probă a fost deja folosită`}. ${taxNotice(order.tax_status)} Lectura zilnică este pregătită după ora 08:00, Europe/Bucharest.\nAnulare și gestionare: ${manage}`;
    }else if(job.kind==='booking_cancelled'){
-    subject='Anulare rezervare · The Divine Work';text=`Rezervarea de test a fost anulată. Starea rambursării se verifică separat în pagina personală: ${manage}`;
+    subject='Anulare rezervare · The Divine Work';text=`Rezervarea de test a fost anulată. Valoarea rezervării: ${formatMoney(order.amount,order.currency)}. Starea rambursării se verifică separat în pagina personală: ${manage}`;
    }
    const consent=await db.command<{marketing_opt_in:boolean}>('get_consent',{id:order.id});
    if(consent.marketing_opt_in&&['booking_confirmed','membership_welcome'].includes(job.kind))text+=`\n\nAi cerut separat mesaje promoționale. Confirmă opțiunea (nu este necesară pentru serviciu): ${deps.origin}/tarot-gratuit/confirma#token=${marketingToken(order.id,deps.tokenSecret)}`;
