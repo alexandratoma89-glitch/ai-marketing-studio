@@ -1,0 +1,5 @@
+import {isDemo,productionStore} from '../tarot/runtime.ts';
+export interface VideoDb{command<T=any>(action:string,data?:Record<string,unknown>):Promise<T>}
+export interface Generation{id:string;prompt:string;status:string;task_id:string|null;output_url:string|null;lease:string;storage_path:string|null}
+let local:Promise<VideoDb>|undefined;
+export async function videoDb():Promise<VideoDb>{if(!isDemo()){if(process.env.RUNWAY_DATABASE_READY!=='true')throw new Error('Runway migration required');return {command:(a,d={})=>productionStore().rpc('runway_command',{p_action:a,p_data:d})};}return local??=(async()=>{const {PGlite}=await import('@electric-sql/pglite');const {readFile}=await import('node:fs/promises');const sql=new PGlite();await sql.exec('create role anon;create role authenticated;create role service_role;');await sql.exec(await readFile('supabase/migrations/202610160005_runway_video.sql','utf8'));return {async command<T>(a:string,d:Record<string,unknown>={}){return (await sql.query<{r:T}>('select runway_command($1,$2::jsonb) r',[a,JSON.stringify(d)])).rows[0].r;}};})();}

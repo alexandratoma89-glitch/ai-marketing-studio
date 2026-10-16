@@ -8,6 +8,10 @@
     {
       "path": "/api/jobs/instagram",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/jobs/runway",
+      "schedule": "* * * * *"
     }
   ]
 }

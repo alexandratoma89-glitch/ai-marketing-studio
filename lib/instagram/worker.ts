@@ -1,8 +1,10 @@
+import {INSTAGRAM_PUBLISHING_LOCKED} from '../runway/policy.ts';
 import {randomUUID} from 'node:crypto';
 import {decrypt,encrypt} from './security.ts';
 import {InstagramApi,MetaError,tokenRequest} from './meta.ts';
 import type {InstagramDb,Account,Reel} from './db.ts';
-export async function publishNext(db:InstagramDb,transport:typeof fetch=fetch){
+export async function publishNext(db:InstagramDb,transport:typeof fetch=fetch,options:{allowPublishingForTests?:boolean}={}){
+ if(INSTAGRAM_PUBLISHING_LOCKED&&!(process.env.NODE_ENV!=='production'&&options.allowPublishingForTests===true))return {status:'locked_for_runway_test'};
  if(process.env.INSTAGRAM_PUBLISHING_ENABLED!=='true')return {status:'disabled'};
  let account=await db.command<Account|null>('account');if(!account||Date.parse(account.expires_at)<=Date.now())return {status:'reconnect_required'};
  let token=decrypt(account.token_cipher);

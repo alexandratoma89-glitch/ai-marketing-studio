@@ -37,3 +37,5 @@ No DNS changes at Namecheap are needed for Instagram. Keep the working website a
 ## Development verification
 
 `npm test` includes Postgres-backed Instagram integration tests using PGlite and mocked official Meta HTTP endpoints: encryption/tampering, state/expiry/replay, wrong account/missing permissions, approval/AI policy, scheduling, concurrent claims, cancellation, rate limits, bounded retries, uncertain publication, permalink recovery, token refresh and browser-role denial. `npm run test:e2e` covers the protected Studio integration UI. `npm run typecheck` and `npm run build` check the application. Dev Instagram storage is process-local and resets on restart; production fails closed without Supabase and migration confirmation. No fabricated mock account is shown as a real connection.
+
+Current first-video-test restriction: Instagram publishing is now source-locked while the Runway single-video workflow is tested. Step 14's environment switch cannot override that lock. See `docs/runway-verification.md`; account connection and queue review still work, but a separate explicitly authorized code change is required to resume publishing.

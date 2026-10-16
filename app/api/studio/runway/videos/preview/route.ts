@@ -1,0 +1,3 @@
+import {videoDb} from '@/lib/runway/db';import {SupabaseVideoStorage} from '@/lib/runway/storage';import {apiError,noStore,HttpError} from '@/lib/commerce/http';
+export const runtime='nodejs';
+export async function GET(request:Request){try{const id=new URL(request.url).searchParams.get('id');if(!id||!/^[a-f\d-]{36}$/i.test(id))throw new HttpError(400,'Videoclip invalid.');const row=await (await videoDb()).command('preview',{id});if(!row?.storage_path)throw new HttpError(404,'Videoclipul nu este încă salvat.');return Response.json({url:await new SupabaseVideoStorage().preview(row.storage_path)},{headers:noStore});}catch(e){return apiError(e);}}
