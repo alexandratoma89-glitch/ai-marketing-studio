@@ -1,6 +1,6 @@
 # Free tarot email flow
 
-Public route: `/tarot-gratuit`. The existing marketing dashboard at `/` is preserved.
+Public route: `/tarot-gratuit`. The customer homepage is `/`; the existing marketing dashboard is preserved behind authentication at `/studio`.
 
 ## Development preview
 
