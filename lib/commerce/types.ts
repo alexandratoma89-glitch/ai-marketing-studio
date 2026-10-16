@@ -1,0 +1,4 @@
+export interface CommerceDb {command<T=Record<string,unknown>>(action:string,data?:Record<string,unknown>):Promise<T>}
+export interface Order {id:string;kind:'booking'|'membership';status:string;contact_id:string;slot_id?:string;amount:number;currency:'usd';intro_discount:boolean;checkout_id?:string;payment_intent?:string;customer_id?:string;subscription_id?:string;member_status?:string;member_until?:string;meeting_mode?:'audio'|'video';email:string;firstName:string;startsAt?:string;meetingUrl?:string;cancel_at_period_end:boolean}
+export interface Slot {id:string;startsAt:string;endsAt:string;modes:('audio'|'video')[]}
+export interface Job {id:string;order_id:string;kind:string;reading?:unknown;skip?:boolean}

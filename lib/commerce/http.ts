@@ -1,0 +1,7 @@
+import {PublicError} from '../tarot/types.ts';
+import {siteUrl} from '../tarot/runtime.ts';
+export class HttpError extends Error {status:number;constructor(status:number,message:string){super(message);this.status=status;}}
+export async function readJson(request:Request,limit=8192){if(request.headers.get('origin')!==siteUrl())throw new HttpError(403,'Solicitare nepermisă.');if(!request.headers.get('content-type')?.startsWith('application/json'))throw new HttpError(415,'Format neacceptat.');const body=await readBody(request,limit);try{return JSON.parse(body);}catch{throw new HttpError(400,'Solicitare JSON invalidă.');}}
+export async function readBody(request:Request,limit=65536){if(Number(request.headers.get('content-length')??0)>limit)throw new HttpError(413,'Solicitare prea mare.');const reader=request.body?.getReader();if(!reader)throw new HttpError(400,'Solicitare invalidă.');const chunks:Uint8Array[]=[];let length=0;while(true){const {value,done}=await reader.read();if(done)break;length+=value.length;if(length>limit){await reader.cancel();throw new HttpError(413,'Solicitare prea mare.');}chunks.push(value);}return Buffer.concat(chunks).toString('utf8');}
+export const noStore={'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'};
+export function apiError(error:unknown){const known=error instanceof HttpError||error instanceof PublicError;return Response.json({error:known?error.message:'Serviciul de test nu este configurat sau este temporar indisponibil.'},{status:known?error.status:503,headers:noStore});}

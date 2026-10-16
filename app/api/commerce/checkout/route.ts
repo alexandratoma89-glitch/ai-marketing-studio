@@ -1,0 +1,3 @@
+import {commerceDb} from '@/lib/commerce/db';import {assertTestCommerce,botVerifier,tokenSecret} from '@/lib/commerce/runtime';import {readJson,apiError,noStore} from '@/lib/commerce/http';import {reserveOrder} from '@/lib/commerce/service';import {stripeClient,startCheckout} from '@/lib/commerce/stripe';import {siteUrl,ipHash} from '@/lib/tarot/runtime';
+export const runtime='nodejs';
+export async function POST(request:Request){try{assertTestCommerce();const input=await readJson(request);const stripe=stripeClient();const db=await commerceDb();const order=await reserveOrder(db,input,ipHash(request),botVerifier(),tokenSecret());return Response.json(await startCheckout(db,stripe,order,siteUrl()),{headers:noStore});}catch(error){return apiError(error);}}

@@ -1,3 +1,4 @@
+import {devTarotRpc} from '@/lib/commerce/db';
 import {productionStore,siteUrl,isDemo} from '@/lib/tarot/runtime';
 import {hashToken} from '@/lib/tarot/service';
 export const runtime='nodejs';
@@ -13,8 +14,8 @@ export async function POST(request:Request){
   const text=Buffer.concat(chunks).toString('utf8');
   const {token,action}=JSON.parse(text);
   if(typeof token!=='string'||! /^[a-f0-9]{64}$/.test(token)||!['confirm','withdraw'].includes(action))throw new Error('Invalid');
-  if(isDemo())return Response.json({error:'Confirmarea reală necesită configurarea Supabase.'},{status:503,headers});
-  const result=await productionStore().rpc<{ok:boolean}>('tarot_marketing_choice',{p_token_hash:hashToken(token),p_action:action});
+  const params={p_token_hash:hashToken(token),p_action:action};
+  const result=isDemo()?await devTarotRpc<{ok:boolean}>('tarot_marketing_choice',params):await productionStore().rpc<{ok:boolean}>('tarot_marketing_choice',params);
   return Response.json(result,{status:result.ok?200:400,headers});
  }catch{return Response.json({error:'Link invalid sau expirat.'},{status:400,headers});}
 }

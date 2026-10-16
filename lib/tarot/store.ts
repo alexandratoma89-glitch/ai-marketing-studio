@@ -25,3 +25,8 @@ export class SupabaseStore implements Store {
  admit(request:ReadingRequest,ipHash:string){return this.rpc<Admission>('request_free_tarot',{p_id:request.id,p_first_name:request.firstName,p_email:request.email,p_marketing_consent:request.marketingConsent,p_policy_version:request.policyVersion,p_card:request.card,p_ip_hash:ipHash,p_token_hash:request.consentTokenHash??null});}
  async update(id:string,patch:{status:DeliveryStatus;reading?:Reading;providerId?:string}){await this.rpc('update_free_tarot',{p_id:id,p_status:patch.status,p_reading:patch.reading??null,p_provider_id:patch.providerId??null});}
 }
+
+export class DevelopmentTarotStore implements Store {
+ async admit(request:ReadingRequest,ipHash:string){const {devTarotRpc}=await import('../commerce/db.ts');return devTarotRpc<Admission>('request_free_tarot',{p_id:request.id,p_first_name:request.firstName,p_email:request.email,p_marketing_consent:request.marketingConsent,p_policy_version:request.policyVersion,p_card:request.card,p_ip_hash:ipHash,p_token_hash:request.consentTokenHash??null});}
+ async update(id:string,patch:{status:DeliveryStatus;reading?:Reading;providerId?:string}){const {devTarotRpc}=await import('../commerce/db.ts');await devTarotRpc('update_free_tarot',{p_id:id,p_status:patch.status,p_reading:patch.reading??null,p_provider_id:patch.providerId??null});}
+}
