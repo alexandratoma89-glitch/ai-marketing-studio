@@ -1,0 +1,6 @@
+import {isDemo,productionStore} from '../tarot/runtime.ts';
+export interface InstagramDb {command<T=unknown>(action:string,data?:Record<string,unknown>):Promise<T>}
+let local:Promise<InstagramDb>|undefined;
+export async function instagramDb():Promise<InstagramDb>{if(!isDemo()){if(process.env.INSTAGRAM_DATABASE_READY!=='true')throw new Error('Instagram migration required');return {command:(action,data={})=>productionStore().rpc('instagram_command',{p_action:action,p_data:data})};}return local??=(async()=>{const {PGlite}=await import('@electric-sql/pglite');const {readFile}=await import('node:fs/promises');const sql=new PGlite();await sql.exec('create role anon;create role authenticated;create role service_role;');await sql.exec(await readFile('supabase/migrations/202610160004_instagram.sql','utf8'));return {async command<T>(action:string,data:Record<string,unknown>={}){const r=await sql.query<{result:T}>('select instagram_command($1,$2::jsonb) result',[action,JSON.stringify(data)]);return r.rows[0].result;}};})();}
+export interface Account {id:string;username:string;token_cipher:string;expires_at:string;refreshed_at:string}
+export interface Reel {id:string;account_id:string;video_url:string;caption:string;ai_generated:boolean;container_id:string|null;media_id:string|null;lease:string;status:string}

@@ -1,0 +1,3 @@
+import {randomUUID} from 'node:crypto';import {instagramDb} from '@/lib/instagram/db';import {revokeSignedRequest} from '@/lib/instagram/revocation';import {readBody,noStore} from '@/lib/commerce/http';import {siteUrl} from '@/lib/tarot/runtime';
+export const runtime='nodejs';
+export async function POST(request:Request){try{const body=new URLSearchParams(await readBody(request,16384));await revokeSignedRequest(await instagramDb(),body.get('signed_request')??'',process.env.INSTAGRAM_APP_SECRET??'');return Response.json({url:`${siteUrl()}/instagram-data-deletion`,confirmation_code:randomUUID()},{headers:noStore});}catch{return Response.json({error:'Invalid request'},{status:400,headers:noStore});}}

@@ -1,0 +1,3 @@
+import {equal} from '@/lib/instagram/security';import {instagramDb} from '@/lib/instagram/db';import {publishNext} from '@/lib/instagram/worker';import {apiError,noStore} from '@/lib/commerce/http';
+export const runtime='nodejs';export const maxDuration=60;
+export async function GET(request:Request){const secret=process.env.CRON_SECRET;if(!secret||secret.length<32||!equal(request.headers.get('authorization')??'',`Bearer ${secret}`))return new Response('Unauthorized',{status:401,headers:noStore});if(process.env.INSTAGRAM_PUBLISHING_ENABLED!=='true')return Response.json({status:'disabled'},{headers:noStore});try{return Response.json(await publishNext(await instagramDb()),{headers:noStore});}catch(e){return apiError(e);}}

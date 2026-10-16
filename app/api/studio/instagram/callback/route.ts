@@ -1,0 +1,3 @@
+import {NextRequest,NextResponse} from 'next/server';import {instagramDb} from '@/lib/instagram/db';import {finishOAuth} from '@/lib/instagram/oauth';import {siteUrl} from '@/lib/tarot/runtime';
+export const runtime='nodejs';
+export async function GET(request:NextRequest){let status='connected';try{await finishOAuth(await instagramDb(),request.nextUrl.searchParams,request.cookies.get('instagram_oauth')?.value??'');}catch{status='oauth_failed';}const response=NextResponse.redirect(`${siteUrl()}/studio/instagram?connection=${status}`);response.headers.set('Cache-Control','no-store');response.headers.set('Referrer-Policy','no-referrer');response.cookies.set('instagram_oauth','',{maxAge:0,path:'/api/studio/instagram/callback'});return response;}

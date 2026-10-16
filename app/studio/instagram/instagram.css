@@ -1,0 +1,10 @@
+.instagram-studio .tarot-info{flex-direction:column;align-items:stretch;overflow-wrap:anywhere;min-width:0}
+.instagram-studio .tarot-info p{margin:0}
+.instagram-studio button{white-space:normal;max-width:100%;height:auto;min-height:42px;justify-content:center;padding:10px 16px;border-radius:6px;border:1px solid #614474;background:#32203f;color:#e5d1f4;cursor:pointer}
+.instagram-studio button:disabled{opacity:.45;cursor:not-allowed}
+.instagram-studio .tarot-primary{background:#c9a4e5;color:#21132d}
+.instagram-studio .tarot-info label{display:block;line-height:1.8}
+.instagram-studio input[type=checkbox]{accent-color:#bd91df;margin-right:9px;width:17px;height:17px}
+.instagram-studio textarea{resize:vertical;min-height:120px;width:100%;background:#120e19;border:1px solid #493355;border-radius:5px;padding:12px;color:#efdef9;font:inherit}
+.instagram-studio .tarot-info video{width:100%;object-fit:contain;background:#100b17;border-radius:6px}
+.instagram-studio .tarot-info a{color:#d5b0ed;text-decoration:underline}
