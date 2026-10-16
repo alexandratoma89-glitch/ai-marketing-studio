@@ -10,20 +10,22 @@ Development uses an explicitly labeled deterministic Romanian sample interpretat
 
 Mock messages are JSON files in the OS temporary directory, `arcana-private-outbox`, mode 0600 under a 0700 directory. They are never exposed through an HTTP route or logged. Use only test addresses in development. Memory resets on process restart; mock files remain until removed. Delete mock outbox files when finished. The browser never stores visitor PII in localStorage, URL parameters, or public pages.
 
-## Production is deliberately inactive
+## Live activation
 
-The source-level `LIVE_EMAIL_AUTHORIZED=false` safety lock in `lib/tarot/providers.ts` prevents real sending even with credentials. Production signup fails with HTTP 503 while locked; it does not collect contacts or silently simulate real delivery. Never set `NODE_ENV=development` on a production deployment. Changing a single environment flag cannot unlock sending. Obtain explicit sending authorization before reviewing and changing this source lock, and obtain authorization for paid AI calls as well.
+The owner explicitly authorized real email, booking and payments on 2026-10-16. The source records that authorization, while `TAROT_EMAIL_ENABLED` and `TAROT_AI_ENABLED` remain false by default. Production fails closed unless all required settings are present, the database migration is confirmed (`TAROT_DATABASE_READY=true`), and the privacy notice is complete. Development always uses the mock provider and sample interpretation. Never set `NODE_ENV=development` on a public production deployment. Configuration presence alone does not prove provider access or delivery; test those before customer launch.
+
+The protected `/studio/launch` page reports required setting names and presence only. It never exposes secret values, makes paid calls, or activates services.
 
 Required before a real launch:
 
 1. Apply `supabase/migrations/202610160001_free_tarot.sql` to the intended Supabase project. Keep the service role key server-only. Browser roles have no table or RPC access. No live database has been migrated by this task.
 2. Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TAROT_IP_HASH_SECRET` (a cryptographically random, long-lived secret), and HTTPS `TAROT_SITE_URL` to the canonical public origin.
 3. Configure production Cloudflare Turnstile hostname and site/secret keys. The server verifies success, hostname and the `free_tarot` action. No bypass or Cloudflare test key is permitted in production. Protect the endpoint with hosting WAF request limits too, including requests that fail bot verification.
-4. Configure the AI provider key `AI_API_KEY`, selected model `TAROT_AI_MODEL`, and Resend's `RESEND_API_KEY`, verified `TAROT_EMAIL_FROM` domain (SPF/DKIM/DMARC). No AI or email API was called during implementation.
+4. Configure the AI provider key `AI_API_KEY`, selected model `TAROT_AI_MODEL`, and Resend's `RESEND_API_KEY`, verified `TAROT_EMAIL_FROM` domain (SPF/DKIM/DMARC). No live AI or email API was called during implementation; tests use mocks.
 5. Register `/api/tarot/webhook` in Resend for `email.delivered` and `email.bounced`, setting `RESEND_WEBHOOK_SECRET`. Signatures, five-minute timestamp tolerance and persistent event IDs prevent forged/replayed updates. Provider acceptance is stored as `provider_accepted`, not delivery. Bounce wins over late delivery notifications. Pre-receipt webhooks are retained and applied when the provider ID arrives.
 6. Complete the published privacy notice with controller identity, contact, legal basis for the requested service, retention periods, rights procedure, processors and transfer details. Define and operate retention/deletion jobs and support procedures before real collection. Only then set `TAROT_PRIVACY_READY=true`. Do not put customer data in application logs or error tracking.
 7. Set the optional HTTPS booking and subscription destination links. The offer is one 30-minute reading for **49 USD**; the independent daily-card subscription is **30 days free, then 10 USD/month**. These informational routes clearly state unavailability until configured. No payment, free trial, or recurring charge is activated here; checkout must disclose recurring terms and cancellation before purchase.
-8. Verify all of the above on staging, explicitly authorize real sending, remove the reviewed source lock, and test actual mail with an approved test recipient. This deployment integration assumes Vercel's platform-overwritten `x-vercel-forwarded-for`; other hosts require a separately reviewed trusted-client-address adapter. Never trust arbitrary `X-Forwarded-For`.
+8. Verify all of the above on staging, set `TAROT_DATABASE_READY=true`, `TAROT_AI_ENABLED=true` and `TAROT_EMAIL_ENABLED=true` only after readiness is established, and test actual mail with an approved recipient. This deployment integration assumes Vercel's platform-overwritten `x-vercel-forwarded-for`; other hosts require a separately reviewed trusted-client-address adapter. Never trust arbitrary `X-Forwarded-For`.
 
 ## Consent and campaign boundaries
 
@@ -41,6 +43,15 @@ The request and consent record are committed before generation. Generation failu
 
 ## Validation
 
-- `npm test`: original workflow tests, tarot unit/integration tests, and the actual SQL migration exercised against PGlite (embedded Postgres). Tests cover consent, privacy boundaries, all illustrations, failure statuses, duplicate and IP controls, provider safety lock, webhook signatures, RLS/permissions, and email event ordering. This does not establish connectivity to your Supabase project.
+- `npm test`: original workflow tests, tarot unit/integration tests, and the actual SQL migration exercised against PGlite (embedded Postgres). Tests cover consent, privacy boundaries, all illustrations, failure statuses, duplicate and IP controls, provider activation gates, webhook signatures, RLS/permissions, and email event ordering. This does not establish connectivity to your Supabase project.
 - `npm run test:e2e`: Chromium checks required/invalid input, unchecked consent, opt-in signup, mobile layout, mock email output, private confirmation, HTTP abuse controls and preservation of the dashboard. Uses a local server on port 3100. Install Playwright Chromium if a system browser is unavailable (`npx playwright install chromium`).
-- `npm run build` and `npm run typecheck`: production compilation and TypeScript checks. Production runtime checks must confirm HTTP 503 while sending remains locked.
+- `npm run build` and `npm run typecheck`: production compilation and TypeScript checks. Production runtime checks must confirm HTTP 503 while live prerequisites or activation flags are missing.
+
+
+## Paid bookings and daily subscription
+
+The recommended first paid offer is a 30-minute appointment for 49 USD. Select a scheduling provider with integrated payment collection and a payment processor approved for the business country and activity. Establish available time slots, timezone, video meeting details, receipts, cancellation/refund terms and business identity in that service. After a completed test booking (including test payment, confirmation and cancellation), save the exact HTTPS event URL in `TAROT_BOOKING_URL`, set `TAROT_BOOKING_VERIFIED=true`, and then `TAROT_BOOKING_ENABLED=true`. The button will stay hidden until both flags and the HTTPS destination are configured. This application does not create scheduler events or process card data itself. Never use an unrelated payment link that charges without reserving a slot.
+
+A paid daily-card subscription requires recurring-payment state, daily fulfillment, cancellation, retries and suppression that are not implemented yet. `DAILY_SUBSCRIPTION_READY=false` prevents linking to any recurring checkout, even if a URL and flag are mistakenly set. The 30-day trial/10 USD-per-month offer remains informational. Do not collect recurring payments until that fulfillment work is completed and verified.
+
+Domain authentication for transactional email should use a dedicated sending subdomain such as `send.thedivinework.com`. Add the exact records shown by the selected email provider; preserve Namecheap's existing root-domain Private Email MX, SPF and DKIM records. Do not add a second SPF record at the same hostname.

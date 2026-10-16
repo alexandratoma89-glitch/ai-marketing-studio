@@ -31,6 +31,8 @@ Dashboard state is in memory and resets on reload. The customer homepage is at `
 
 A separate public experience now lives at `/tarot-gratuit`; the dashboard is protected at `/studio`.
 See [setup, safety gates, consent storage and testing](docs/free-tarot.md).
-Development uses a private mock outbox and sample Romanian interpretation. Production sending is source-locked and cannot be enabled accidentally with credentials. Supabase, AI, bot verification, booking and subscription destinations still require operator configuration before a real launch.
+Development uses a private mock outbox and sample Romanian interpretation. Production sending requires explicit activation flags and all service prerequisites, beyond credentials alone. Supabase, AI, bot verification, booking and subscription destinations still require operator configuration before a real launch.
 
 In Vercel: Project Settings → Environment Variables → add `STUDIO_USERNAME` and `STUDIO_PASSWORD` for Production, then redeploy. Never send the password through chat or commit it. The homepage is public and requires no password. Keep email sending and payment services disabled until separately authorized.
+
+Private launch checklist: `/studio/launch`. It displays configuration presence only. No account connection, mail delivery or transaction has been verified until those operations are tested against the configured services.

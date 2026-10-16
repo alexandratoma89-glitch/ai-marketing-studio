@@ -1,3 +1,4 @@
+import {emailConfigured} from '../launch/config.ts';
 import {createHmac,randomBytes} from 'node:crypto';
 import {MemoryStore,SupabaseStore} from './store.ts';
 import {DemoGenerator,AiGenerator,MockEmailProvider,ResendEmailProvider,LIVE_EMAIL_AUTHORIZED} from './providers.ts';
@@ -8,7 +9,7 @@ export function siteUrl(){const url=new URL(process.env.TAROT_SITE_URL??'http://
 export function productionStore(){const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!url||!key||new URL(url).protocol!=='https:')throw new Error('Supabase configuration missing');return new SupabaseStore(url,key);}
 export function assertAvailable(){
  if(isDemo())return;
- if(!LIVE_EMAIL_AUTHORIZED||!process.env.RESEND_API_KEY||!process.env.TAROT_EMAIL_FROM||!process.env.AI_API_KEY||!process.env.TAROT_AI_MODEL||!process.env.TURNSTILE_SECRET_KEY||!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY||(process.env.TAROT_IP_HASH_SECRET?.length??0)<32||!process.env.TAROT_SITE_URL||process.env.TAROT_PRIVACY_READY!=='true')throw new PublicError(503,'Lectura gratuită prin email nu este încă disponibilă. Te rugăm să revii.');
+ if(!LIVE_EMAIL_AUTHORIZED||!emailConfigured())throw new PublicError(503,'Lectura gratuită prin email nu este încă disponibilă. Te rugăm să revii.');
  productionStore();siteUrl();
 }
 export function getDeps(){
@@ -28,3 +29,5 @@ export function ipHash(request:Request){
 async function verifyTurnstile(token:string){
  try{const response=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:new URLSearchParams({secret:process.env.TURNSTILE_SECRET_KEY!,response:token}),signal:AbortSignal.timeout(8000)});if(!response.ok)return false;const data=await response.json();return data.success===true&&data.hostname===new URL(siteUrl()).hostname&&data.action==='free_tarot';}catch{return false;}
 }
+
+export function isReadingAvailable(){if(isDemo())return true;try{assertAvailable();return true;}catch{return false;}}

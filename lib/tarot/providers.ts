@@ -3,8 +3,9 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import type {Generator,Reading,EmailProvider,EmailMessage} from './types.ts';
 import type {Card} from './deck.ts';
-// Deliberate source-level safety lock. Change only after explicit authorization for real sending.
-export const LIVE_EMAIL_AUTHORIZED=false;
+// Owner explicitly authorized live email in chat on 2026-10-16.
+// Separate production activation and complete service configuration are still required.
+export const LIVE_EMAIL_AUTHORIZED=true;
 export class DemoGenerator implements Generator {
  async generate(card:Card):Promise<Reading>{return {source:'demo',meaning:`${card.name} aduce în prim-plan ${card.symbols}. În tradiția Rider–Waite–Smith, imaginile nu hotărăsc viitorul, ci deschid un spațiu în care îți poți observa propriile reacții. Privește simbolurile ca pe o invitație la reflecție, nu ca pe un verdict.`,guidance:`Acordă-ți astăzi câteva minute fără grabă. Observă ce temă din această carte se leagă de viața ta și notează un singur pas mic pe care îl poți face în acord cu valorile tale. Dacă o schimbare pare prea mare, începe cu ceea ce poți controla acum: un gând exprimat sincer, o limită blândă sau un moment de odihnă. Păstrează libertatea de a alege ce ți se potrivește.`,question:`Ce pas mic, inspirat de tema „${card.symbols.split(',')[0]}”, te-ar ajuta să te simți mai aproape de tine astăzi?`};}
 }
@@ -31,7 +32,7 @@ export class ResendEmailProvider implements EmailProvider {
  private key:string;private from:string;
  constructor(key:string,from:string){this.key=key;this.from=from;}
  async send(message:EmailMessage):Promise<{id:string;status:'provider_accepted'}>{
-  if(!LIVE_EMAIL_AUTHORIZED)throw new Error('Real email is not authorized');
+  if(!LIVE_EMAIL_AUTHORIZED||process.env.TAROT_EMAIL_ENABLED!=='true'||process.env.NODE_ENV!=='production')throw new Error('Real email is not enabled');
   const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${this.key}`,'Content-Type':'application/json','Idempotency-Key':`free-tarot/${message.requestId}`},body:JSON.stringify({from:this.from,to:[message.to],subject:message.subject,html:message.html,text:message.text}),signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw new Error('Email API rejected request');
   const result=await response.json();if(typeof result.id!=='string')throw new Error('Missing provider receipt');
