@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test lib/workflow.test.ts lib/tarot/*.test.ts lib/studio/*.test.ts lib/launch/*.test.ts lib/commerce/*.test.ts lib/instagram/*.test.ts",
+    "test": "node --experimental-strip-types --test lib/workflow.test.ts lib/tarot/*.test.ts lib/studio/*.test.ts lib/launch/*.test.ts lib/commerce/*.test.ts lib/instagram/*.test.ts lib/runway/*.test.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
