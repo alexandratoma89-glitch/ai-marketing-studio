@@ -1,7 +1,7 @@
 import {randomBytes} from 'node:crypto';
 import {siteUrl} from '../tarot/runtime.ts';
 import {encrypt,encryptionKey,equal,hash,scopes} from './security.ts';
-import {InstagramApi,tokenRequest} from './meta.ts';
+import {InstagramApi,MetaError,tokenRequest} from './meta.ts';
 import type {InstagramDb} from './db.ts';
 export const callbackUrl=()=>`${siteUrl()}/api/studio/instagram/callback`;
 export function oauthConfig(){encryptionKey();const id=process.env.INSTAGRAM_APP_ID,secret=process.env.INSTAGRAM_APP_SECRET;if(!id||!secret)throw new Error('Instagram app credentials required');return {id,secret};}
@@ -10,5 +10,5 @@ export async function finishOAuth(db:InstagramDb,query:URLSearchParams,cookie:st
 
 // Only fixed diagnostic codes may leave the callback; provider responses stay private.
 export const oauthFailureCodes = ['invalid_oauth_state','oauth_denied','short_token_failed','long_token_failed','invalid_token_expiry','identity_failed','professional_account_required','unexpected_instagram_account','permissions_failed','missing_permissions','connection_save_failed'] as const;
-export function oauthFailureReason(error:unknown){const message=error instanceof Error?error.message:'';return (oauthFailureCodes as readonly string[]).includes(message)?message:'configuration_failed';}
-async function oauthStep<T>(code:string,operation:()=>Promise<T>):Promise<T>{try{return await operation();}catch(error){if(error instanceof Error&&['professional_account_required','missing_permissions'].includes(error.message))throw error;throw new Error(code);}}
+export function oauthFailureReason(error:unknown){const message=error instanceof Error?error.message:'';return ((oauthFailureCodes as readonly string[]).includes(message)||/^permissions_failed_(?:meta_\d{1,6}|network_error|invalid_meta_response|reconnect_required)$/.test(message))?message:'configuration_failed';}
+async function oauthStep<T>(code:string,operation:()=>Promise<T>):Promise<T>{try{return await operation();}catch(error){if(code==='permissions_failed'&&error instanceof MetaError&&/^(?:meta_\d{1,6}|network_error|invalid_meta_response|reconnect_required)$/.test(error.code))throw new Error(`${code}_${error.code}`);if(error instanceof Error&&['professional_account_required','missing_permissions'].includes(error.message))throw error;throw new Error(code);}}
