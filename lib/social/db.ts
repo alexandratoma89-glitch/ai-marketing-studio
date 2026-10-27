@@ -1,0 +1,4 @@
+import {isDemo,productionStore} from '../tarot/runtime.ts';
+export interface SocialDb{command<T=any>(action:string,data?:Record<string,unknown>):Promise<T>}
+let local:Promise<SocialDb>|undefined;
+export async function socialDb():Promise<SocialDb>{if(!isDemo()){if(process.env.SOCIAL_DATABASE_READY!=='true')throw new Error('social_database_not_configured');return {command:(a,d={})=>productionStore().rpc('social_command',{p_action:a,p_data:d})};}return local??=(async()=>{const {PGlite}=await import('@electric-sql/pglite');const {readFile}=await import('node:fs/promises');const sql=new PGlite();await sql.exec('create role anon;create role authenticated;create role service_role;');await sql.exec(await readFile('supabase/migrations/202610270006_social_connections.sql','utf8'));return {async command<T>(a:string,d:Record<string,unknown>={}){return (await sql.query<{r:T}>('select social_command($1,$2::jsonb) r',[a,JSON.stringify(d)])).rows[0].r;}};})();}

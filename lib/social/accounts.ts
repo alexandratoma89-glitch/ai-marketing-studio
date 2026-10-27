@@ -1,0 +1,3 @@
+export const accounts={instagram:{name:'Instagram',handle:'@divinework.store',url:'https://www.instagram.com/divinework.store/'},facebook:{name:'Facebook Page',handle:'@divinework.store',url:'https://www.facebook.com/divinework.store'},tiktok:{name:'TikTok',handle:'@divinework.store',url:'https://www.tiktok.com/@divinework.store'},youtube:{name:'YouTube',handle:'@divine-work',url:'https://www.youtube.com/@divine-work'}} as const;
+export type Provider='facebook'|'tiktok'|'youtube';
+export function provider(value:string):Provider{if(!['facebook','tiktok','youtube'].includes(value))throw new Error('unsupported_provider');return value as Provider;}

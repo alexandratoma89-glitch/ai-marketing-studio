@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server';import {provider} from '@/lib/social/accounts';import {socialDb} from '@/lib/social/db';import {start} from '@/lib/social/oauth';import {readJson,apiError,noStore} from '@/lib/commerce/http';
+export const runtime='nodejs';
+export async function POST(request:Request,{params}:{params:Promise<{provider:string}>}){try{await readJson(request);const p=provider((await params).provider),result=await start(await socialDb(),p);const response=NextResponse.json({url:result.url},{headers:noStore});response.cookies.set(`social_${p}`,result.state,{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',maxAge:600,path:`/api/studio/social/${p}/callback`});return response;}catch(e){return apiError(e);}}
