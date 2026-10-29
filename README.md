@@ -52,3 +52,7 @@ Brand accounts and OAuth status are listed at `/studio/social`: Instagram/Facebo
 ### Welcome discount and business email
 
 The homepage offer popup and `/bun-venit` collect an explicit request for the existing 10% first-private-booking offer. `/studio/email` lists setup requirements. The scoped Brevo sender does not enable other email flows, subscriptions, or live checkout. See [docs/welcome-email.md](docs/welcome-email.md) for Namecheap mailbox, sender verification, SQL migration, configuration, and owner-only delivery testing.
+
+### Stripe review: Payments, Invoicing and Tax
+
+See [docs/stripe-integration-plan.md](docs/stripe-integration-plan.md) for the manual review of the existing test-only Checkout implementation, product gaps, sandbox setup, and the blocked Stripe plugin/MCP/skills installation attempts. This is not a Stripe planner-generated plan.
