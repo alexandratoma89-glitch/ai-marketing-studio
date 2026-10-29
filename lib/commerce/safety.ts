@@ -1,5 +1,5 @@
 import {createHmac,timingSafeEqual} from 'node:crypto';
-// Explicit latest instruction: no live payments or customer emails in this release.
+// Existing commerce/reading flows stay source-locked. Requested welcome offers use their own gated sender.
 export const LIVE_COMMERCE_AUTHORIZED=false;
 export const LIVE_CUSTOMER_EMAIL_AUTHORIZED=false;
 export function testStripeKey(key:string|undefined){if(!key||!/^sk_test_/.test(key))throw new Error('A Stripe TEST secret key is required. Live keys are blocked.');return key;}
