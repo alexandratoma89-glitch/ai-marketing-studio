@@ -104,3 +104,9 @@ These links are supplied for the owner/next connected session; they were not fet
 - https://docs.stripe.com/payments/checkout/automatic_taxes
 - https://docs.stripe.com/invoicing
 - https://docs.stripe.com/webhooks
+
+## Implementation update — 30 October 2026
+
+The owner completed one real Stripe **sandbox** Checkout at 161,10 lei and showed a `confirmed` booking in Studio, establishing that the original payment/webhook round trip worked. No live payment occurred.
+
+One-off sandbox invoice support has now been added behind separate migration/configuration flags. See [booking-invoices.md](booking-invoices.md). It includes post-payment Checkout invoice creation, private stored invoice links, signed customer access, and owner read-only reconciliation. External invoice generation is not yet verified. Automatic Stripe Tax, legal seller setup, and credit-note/accounting integration remain outstanding; the business itself is not yet registered in Romania.
