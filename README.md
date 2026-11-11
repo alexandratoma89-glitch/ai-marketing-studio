@@ -56,3 +56,7 @@ The homepage offer popup and `/bun-venit` collect an explicit request for the ex
 ### Stripe review: Payments, Invoicing and Tax
 
 See [docs/stripe-integration-plan.md](docs/stripe-integration-plan.md) for the manual review of the existing test-only Checkout implementation, product gaps, sandbox setup, and the blocked Stripe plugin/MCP/skills installation attempts. This is not a Stripe planner-generated plan.
+
+### Publish owner-uploaded videos
+
+`/studio/publish` supports private direct uploads, preview, immutable per-video approval, Europe/Bucharest schedules, and independent Instagram Reels / Facebook Reels / YouTube upload states. TikTok is manual; the existing AI queue stays locked. See [docs/own-video-publishing.md](docs/own-video-publishing.md) for migration 009, private storage, new publishing grants, scheduler configuration, recovery, and external acceptance limits.
