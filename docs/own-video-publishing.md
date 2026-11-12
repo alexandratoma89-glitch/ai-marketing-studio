@@ -4,7 +4,7 @@
 
 ## Workflow
 
-1. Upload an MP4: 5–60 seconds, maximum 50 MiB, portrait ratio 0.5–0.65, minimum 360×640. Recommend 1080×1920, H.264 video and AAC audio. The browser reads dimensions/duration; the server checks upload size, MIME type and MP4 header. Platform processing is the final codec/duration validator; the app does not transcode.
+1. Upload an MP4: 5–150 seconds, maximum 50 MiB, portrait ratio 0.5–0.65, minimum 360×640. Recommend 1080×1920, H.264 video and AAC audio. The browser reads dimensions/duration; the server checks upload size, MIME type and MP4 header. Platform processing is the final codec/duration validator; the app does not transcode.
 2. Preview the clip. Edit the title and caption before approval. Files upload directly to private Supabase Storage through a path-scoped, non-upserting upload URL, avoiding Vercel's request-body limit.
 3. Select platforms, YouTube visibility/audience, and a time in Europe/Bucharest (or now). Confirm the footage is yours, not AI-generated, that you hold the rights to the video/audio, and that you approve the exact content and timing.
 4. Approval freezes the asset and creates one job per selected platform/account. Each platform has independent progress and result links. The scheduler can prepare unpublished containers up to 15 minutes ahead, but never invokes Meta publish or completes a YouTube upload before the approved time. Provider processing and cron timing can delay actual appearance; exact publication to the second is not guaranteed.
@@ -15,6 +15,8 @@ Uploading is not publishing. No real video was uploaded or published while build
 ## Database and storage
 
 Apply `supabase/migrations/202611110009_own_video_publishing.sql` in the existing project **after Instagram migration 004 and social-connections migration 006**. It creates RLS-protected upload/publication tables and extends social OAuth storage with verified scope grants. Existing connections remain, but Facebook/YouTube grants default empty until reconnection.
+
+For projects already running migration 009, apply `supabase/migrations/202611120010_own_video_duration.sql` to expand the duration constraint from 60 to 150 seconds. New setups should apply both 009 and 010 in order.
 
 Create a **private** Storage bucket named `own-videos`, with allowed MIME types exactly `video/mp4` and file-size limit **52428800** bytes (50 MiB). Do not make it public or reuse `runway-videos`. The preflight rejects public/unrestricted buckets. Keep original content immutable; do not overwrite Storage objects or rotate encryption keys without a migration/reconnection plan.
 

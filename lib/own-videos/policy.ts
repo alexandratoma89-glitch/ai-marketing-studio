@@ -6,7 +6,7 @@ export function ownEnabled(){return process.env.OWN_VIDEOS_ENABLED==='true';}
 export function providerEnabled(p:Platform){return ownEnabled()&&process.env[`OWN_VIDEOS_${p.toUpperCase()}_ENABLED`]==='true';}
 export function pathFor(id:string){if(!/^[a-f\d-]{36}$/i.test(id))throw new Error('invalid_video_id');return `${id}/video.mp4`;}
 export function validateUpload(value:Record<string,unknown>){
- if(value.type!=='video/mp4'||!Number.isSafeInteger(value.bytes)||Number(value.bytes)<32||Number(value.bytes)>MAX_VIDEO_BYTES||!Number.isFinite(value.duration)||Number(value.duration)<5||Number(value.duration)>60||!Number.isFinite(value.width)||!Number.isFinite(value.height)||Number(value.width)<360||Number(value.height)<640||Number(value.width)/Number(value.height)<.5||Number(value.width)/Number(value.height)>.65)throw new Error('invalid_clip');
+ if(value.type!=='video/mp4'||!Number.isSafeInteger(value.bytes)||Number(value.bytes)<32||Number(value.bytes)>MAX_VIDEO_BYTES||!Number.isFinite(value.duration)||Number(value.duration)<5||Number(value.duration)>150||!Number.isFinite(value.width)||!Number.isFinite(value.height)||Number(value.width)<360||Number(value.height)<640||Number(value.width)/Number(value.height)<.5||Number(value.width)/Number(value.height)>.65)throw new Error('invalid_clip');
  return {bytes:Number(value.bytes),duration:Number(value.duration),width:Number(value.width),height:Number(value.height)};
 }
 export function validateCopy(value:Record<string,unknown>){const title=typeof value.title==='string'?value.title.trim():'';const caption=typeof value.caption==='string'?value.caption.trim():'';if(!title||title.length>100||caption.length>2100)throw new Error('invalid_copy');return {title,caption};}
