@@ -1,16 +1,16 @@
 # Publishing the owner's videos
 
-`/studio/publish` uploads and schedules the owner's **own** short vertical MP4s to Instagram Reels, Facebook Page Reels, and YouTube Shorts. TikTok is manual. This is a separate pipeline: Runway generation and its old Instagram queue remain locked. There are no AI-generation calls or automatic selection of sample/Runway videos.
+`/studio/publish` uploads and schedules the owner's **own** short vertical MP4/MOV videos to Instagram Reels, Facebook Page Reels, and YouTube Shorts, plus photos to Instagram and Facebook. TikTok is manual. This is a separate pipeline: Runway generation and its old Instagram queue remain locked. There are no AI-generation calls or automatic selection of sample/Runway videos.
 
 ## Workflow
 
-1. Upload an MP4: 5–150 seconds, maximum 150 MiB, portrait ratio 0.5–0.65, minimum 360×640. Recommend 1080×1920, H.264 video and AAC audio. The browser reads dimensions/duration; the server checks upload size, MIME type and MP4 header. Platform processing is the final codec/duration validator; the app does not transcode.
+1. Upload an MP4 or MOV: 5–150 seconds, maximum 150 MiB, portrait ratio 0.5–0.65, minimum 360×640. Recommend 1080×1920, H.264 video and AAC audio. The browser reads dimensions/duration; the server checks upload size, MIME type and the MP4/MOV or JPEG signature. Platform processing is the final codec/duration validator; the app does not transcode.
 2. Preview the clip. Edit the title and caption before approval. Files upload directly to private Supabase Storage through a path-scoped, non-upserting upload URL, avoiding Vercel's request-body limit.
 3. Select platforms, YouTube visibility/audience, and a time in Europe/Bucharest (or now). Confirm the footage is yours, not AI-generated, that you hold the rights to the video/audio, and that you approve the exact content and timing.
 4. Approval freezes the asset and creates one job per selected platform/account. Each platform has independent progress and result links. The scheduler can prepare unpublished containers up to 15 minutes ahead, but never invokes Meta publish or completes a YouTube upload before the approved time. Provider processing and cron timing can delay actual appearance; exact publication to the second is not guaranteed.
 5. Cancel a waiting job without affecting the other platforms. Working/completed/uncertain jobs cannot be silently canceled/reposted. A rejected step can be explicitly retried; uncertain outcomes require verification/recovery first.
 
-Uploading is not publishing. No real video was uploaded or published while building/testing this feature. Tests use synthetic local MP4 fixtures and mocked provider responses.
+Uploading is not publishing. No real video was uploaded or published while building/testing this feature. Tests use synthetic local MP4, MOV, PNG and HEIC fixtures and mocked provider responses.
 
 ## Database and storage
 
@@ -18,9 +18,9 @@ Apply `supabase/migrations/202611110009_own_video_publishing.sql` in the existin
 
 For projects already running migration 009, apply `supabase/migrations/202611120010_own_video_duration.sql` to expand the duration constraint from 60 to 150 seconds. New setups should apply both 009 and 010 in order.
 
-Create a **private** Storage bucket named `own-videos`, with allowed MIME types exactly `video/mp4` and file-size limit **157286400** bytes (150 MiB). Do not make it public or reuse `runway-videos`. The preflight rejects public/unrestricted buckets. Keep original content immutable; do not overwrite Storage objects or rotate encryption keys without a migration/reconnection plan.
+Create a **private** Storage bucket named `own-videos`, with allowed MIME types `video/mp4`, `video/quicktime`, `image/jpeg` and file-size limit **157286400** bytes (150 MiB). Do not make it public or reuse `runway-videos`. The preflight rejects public buckets, unsupported MIME allowlists and size limits smaller than the selected file. A larger bucket limit is allowed; the app and database still enforce 150 MiB for videos and 8 MiB for the prepared JPEG. Keep original content immutable; do not overwrite Storage objects or rotate encryption keys without a migration/reconnection plan.
 
-No public storage policies are needed. Server-only service-role credentials create signed upload/download URLs. Object paths are generated as `<uuid>/video.mp4`. Provider source URLs last one hour, owner previews five minutes. Those source links are intentionally shared only with the chosen provider for ingestion. Tokens and YouTube resumable-session URLs are encrypted using the existing social key; they do not appear in overview responses.
+No public storage policies are needed. Server-only service-role credentials create signed upload/download URLs. Object paths are generated as `<uuid>/video.mp4`, `<uuid>/video.mov`, or `<uuid>/photo.jpg`. Provider source URLs last one hour, owner previews five minutes. Those source links are intentionally shared only with the chosen provider for ingestion. Tokens and YouTube resumable-session URLs are encrypted using the existing social key; they do not appear in overview responses.
 
 Production settings:
 
@@ -87,4 +87,22 @@ The old Instagram/Runway queue remains locked and single-account. Use the owner'
 
 ## Larger uploads
 
-Apply `202611120012_own_video_size.sql` after 011. Set the private `own-videos` bucket file-size limit to **157286400 bytes (150 MiB)** and retain its MP4-only MIME restriction. The project-wide Storage maximum must also allow at least this size. Supabase Free limits uploads to 50 MB, so 150 MB uploads require a supporting paid Supabase plan. Changing the bucket alone does not override the project-wide limit. No plan upgrades are performed by this code. Browser uploads still go directly to Storage, bypassing Vercel's body-size cap.
+Apply `202611120012_own_video_size.sql` after 011. Set the private `own-videos` bucket file-size limit to **157286400 bytes (150 MiB)** and retain its explicit MIME allowlist (extend it as below for MOV/photos). The project-wide Storage maximum must also allow at least this size. Supabase Free limits uploads to 50 MB, so 150 MB uploads require a supporting paid Supabase plan. Changing the bucket alone does not override the project-wide limit. No plan upgrades are performed by this code. Browser uploads still go directly to Storage, bypassing Vercel's body-size cap.
+
+## iPhone MOV and photos
+
+Apply `202611120013_own_photos_mov.sql` after 012. Existing MP4 uploads and approved jobs retain their paths and video defaults. Extend the private bucket allowlist to exactly:
+
+```
+video/mp4
+video/quicktime
+image/jpeg
+```
+
+The picker accepts MP4, MOV, JPEG/JPG, PNG and HEIC/HEIF. MOV remains MOV; no video transcoding is performed. Video metadata must be readable by the browser (Safari may be needed for some iPhone HEVC files). Provider codec validation still applies; an unsupported codec may need an H.264 export.
+
+Photos are decoded in the browser, with a lazily loaded local `heic2any` decoder when native HEIC decoding is unavailable. No photo is sent to an external conversion service. The browser produces a static JPEG canvas at 1080×1350: the full image is contained without cropping, with black margins when necessary. Only this prepared JPEG is uploaded; the owner must review it before approving. JPEG export strips source metadata. HEIC Live Photos/multi-image files produce one still photo. Unreadable HEICs show an explicit JPEG-export fallback. Photos are limited to 8 MiB after conversion and cannot target YouTube (rejected in UI, API, SQL and worker).
+
+Instagram photos use unpublished image containers followed by the approved publication step. Facebook photos use the Page photos endpoint at the approved time. Each account's state and uncertain-result protection remain independent. A lost Facebook photo publish response never causes a blind second photo post.
+
+Synthetic photo fixtures are a locally generated 64×80 purple image, encoded with ImageMagick (PNG) and Pillow/pillow-heif (HEIC). No user media or externally sourced photographs are included in tests.
