@@ -1,6 +1,6 @@
 export const PLATFORMS=['instagram','facebook','youtube'] as const;
 export type Platform=typeof PLATFORMS[number];
-export const MAX_VIDEO_BYTES=50*1024*1024;
+export const MAX_VIDEO_BYTES=150*1024*1024;
 export const platform=(value:unknown):Platform=>{if(!PLATFORMS.includes(value as Platform))throw new Error('invalid_platform');return value as Platform;};
 export function ownEnabled(){return process.env.OWN_VIDEOS_ENABLED==='true';}
 export function providerEnabled(p:Platform){return ownEnabled()&&process.env[`OWN_VIDEOS_${p.toUpperCase()}_ENABLED`]==='true';}

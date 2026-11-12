@@ -4,7 +4,7 @@
 
 ## Workflow
 
-1. Upload an MP4: 5–150 seconds, maximum 50 MiB, portrait ratio 0.5–0.65, minimum 360×640. Recommend 1080×1920, H.264 video and AAC audio. The browser reads dimensions/duration; the server checks upload size, MIME type and MP4 header. Platform processing is the final codec/duration validator; the app does not transcode.
+1. Upload an MP4: 5–150 seconds, maximum 150 MiB, portrait ratio 0.5–0.65, minimum 360×640. Recommend 1080×1920, H.264 video and AAC audio. The browser reads dimensions/duration; the server checks upload size, MIME type and MP4 header. Platform processing is the final codec/duration validator; the app does not transcode.
 2. Preview the clip. Edit the title and caption before approval. Files upload directly to private Supabase Storage through a path-scoped, non-upserting upload URL, avoiding Vercel's request-body limit.
 3. Select platforms, YouTube visibility/audience, and a time in Europe/Bucharest (or now). Confirm the footage is yours, not AI-generated, that you hold the rights to the video/audio, and that you approve the exact content and timing.
 4. Approval freezes the asset and creates one job per selected platform/account. Each platform has independent progress and result links. The scheduler can prepare unpublished containers up to 15 minutes ahead, but never invokes Meta publish or completes a YouTube upload before the approved time. Provider processing and cron timing can delay actual appearance; exact publication to the second is not guaranteed.
@@ -18,7 +18,7 @@ Apply `supabase/migrations/202611110009_own_video_publishing.sql` in the existin
 
 For projects already running migration 009, apply `supabase/migrations/202611120010_own_video_duration.sql` to expand the duration constraint from 60 to 150 seconds. New setups should apply both 009 and 010 in order.
 
-Create a **private** Storage bucket named `own-videos`, with allowed MIME types exactly `video/mp4` and file-size limit **52428800** bytes (50 MiB). Do not make it public or reuse `runway-videos`. The preflight rejects public/unrestricted buckets. Keep original content immutable; do not overwrite Storage objects or rotate encryption keys without a migration/reconnection plan.
+Create a **private** Storage bucket named `own-videos`, with allowed MIME types exactly `video/mp4` and file-size limit **157286400** bytes (150 MiB). Do not make it public or reuse `runway-videos`. The preflight rejects public/unrestricted buckets. Keep original content immutable; do not overwrite Storage objects or rotate encryption keys without a migration/reconnection plan.
 
 No public storage policies are needed. Server-only service-role credentials create signed upload/download URLs. Object paths are generated as `<uuid>/video.mp4`. Provider source URLs last one hour, owner previews five minutes. Those source links are intentionally shared only with the chosen provider for ingestion. Tokens and YouTube resumable-session URLs are encrypted using the existing social key; they do not appear in overview responses.
 
@@ -48,7 +48,7 @@ The first YouTube test should request **private**, notifications off. Once accou
 
 `vercel.json` adds `/api/jobs/own-videos` every minute. The route requires the existing `CRON_SECRET` (at least 32 characters) and the global enable flag. Minute cron requires an appropriate Vercel plan; verify the deployed Cron Jobs page and an actual execution. Presence of the secret alone does not prove the scheduler is running.
 
-Each invocation processes up to three independently leased steps concurrently, with a 120-second function budget. YouTube transfers at most 50 MiB per upload step; short clips are intentional. Keep Vercel function-duration/memory limits and Supabase storage limits aligned. Manual **Procesează programările scadente** processes one already approved step, not an unapproved upload.
+Each invocation processes up to three independently leased steps concurrently, with a 120-second function budget. YouTube transfers at most 32 MiB per upload step and resumes the same session on subsequent steps. Keep Vercel function-duration/memory limits and Supabase storage limits aligned. Manual **Procesează programările scadente** processes one already approved step, not an unapproved upload.
 
 ## Recovery and duplicate protection
 
@@ -84,3 +84,7 @@ Apply migration `202611120011_multiple_instagram_accounts.sql` after 009 and 010
 Use the two named connect buttons on `/studio/publish`. Each requested username is bound to the expiring, single-use OAuth state; authorizing the wrong profile is rejected. Both accounts must be professional Instagram Business or Creator profiles and have the required app access/tester role or approved app permissions. Connecting @travelmellon does not replace @divinework.store. Select either profile or both explicitly on each approval; no default cross-post to the second profile is added. Each target has its own result and cancellation. Tokens stay server-side. Disconnect cancels queued/waiting jobs for that profile; Meta signed revocation also removes its credentials and related publication records. Active provider requests may already be in progress when disconnect is requested.
 
 The old Instagram/Runway queue remains locked and single-account. Use the owner's publishing page to manage these two connections.
+
+## Larger uploads
+
+Apply `202611120012_own_video_size.sql` after 011. Set the private `own-videos` bucket file-size limit to **157286400 bytes (150 MiB)** and retain its MP4-only MIME restriction. The project-wide Storage maximum must also allow at least this size. Supabase Free limits uploads to 50 MB, so 150 MB uploads require a supporting paid Supabase plan. Changing the bucket alone does not override the project-wide limit. No plan upgrades are performed by this code. Browser uploads still go directly to Storage, bypassing Vercel's body-size cap.
