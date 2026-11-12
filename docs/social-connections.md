@@ -32,3 +32,7 @@ Facebook account matching uses the owner's configured numeric Page ID because a 
 **Elimină conexiunea locală** removes stored connection credentials and pending OAuth states. It does not revoke the provider-side grant; use the provider's connected-app settings as well. No existing posts are deleted. Tests mock provider responses; a real grant and later separately authorized publishing test remain outstanding.
 
 Facebook connections use a local reconnect deadline capped at 60 days. If the long-lived exchange omits its lifetime or reports zero, the short-lived lifetime is used; if neither reports a lifetime, the deadline is one hour. This is a conservative application deadline, not a guarantee of provider token validity. Page access can be revoked earlier.
+
+### Facebook Page omitted from the Page list
+
+After verified OAuth grants, the callback paginates `/me/accounts`. If the configured Page is absent, it requests only that exact numeric `FACEBOOK_PAGE_ID` with `fields=id,name,access_token`, then verifies the resulting Page token with `/me` before saving it. A different Page ID, missing Page token, user-token identity, or denied access fails closed and leaves the previous connection untouched. No permission requirement is removed and no arbitrary returned Page is chosen. The private connection page shows the configured Page ID for comparison with Meta's consent screen. This fallback does not grant missing Page or business-portfolio access.
