@@ -106,3 +106,9 @@ Photos are decoded in the browser, with a lazily loaded local `heic2any` decoder
 Instagram photos use unpublished image containers followed by the approved publication step. Facebook photos use the Page photos endpoint at the approved time. Each account's state and uncertain-result protection remain independent. A lost Facebook photo publish response never causes a blind second photo post.
 
 Synthetic photo fixtures are a locally generated 64×80 purple image, encoded with ImageMagick (PNG) and Pillow/pillow-heif (HEIC). No user media or externally sourced photographs are included in tests.
+
+## Upload progress and recovery
+
+YouTube's HTTP 308 responses are upload progress, even when they include a `Location` header. The worker reads their `Range` without following redirects or forwarding credentials elsewhere. HTTP redirects from mutations on other endpoints remain uncertain. Recovery network errors preserve the uncertain checkpoint and cannot become blind retries. Upload checkpoints from earlier releases are probed against the same resumable session before sending more file bytes; an already complete session proceeds directly to verification. No new YouTube upload session is created for that recovery.
+
+Facebook's upload and processing phases are distinct. Once `uploading_phase.status` is `complete`, the worker can issue the already-approved finish step, even when processing has not started yet. It then waits for confirmed publication. Waiting for processing before finish can deadlock some Reels.
