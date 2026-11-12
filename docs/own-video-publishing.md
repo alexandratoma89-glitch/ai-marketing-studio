@@ -52,7 +52,7 @@ Each invocation processes up to three independently leased steps concurrently, w
 
 ## Recovery and duplicate protection
 
-SQL row locks and unique video/platform keys prevent double approval and concurrent claims of the same target. Approval records exact copy, target account, visibility, audience and time. Editing after approval is rejected. A later reconnection to another account blocks the old approved target rather than posting somewhere else.
+SQL row locks and unique video/platform/account keys prevent double approval and concurrent claims of the same target. Approval records exact copy, target account, visibility, audience and time. Editing after approval is rejected. A later reconnection to another account blocks the old approved target rather than posting somewhere else.
 
 Every potentially ambiguous provider mutation persists intent first. Lost responses, interrupted leases and unacknowledged persistence become **uncertain**; no blind re-post is performed. Encrypted checkpoints preserve known IDs/sessions.
 
@@ -74,3 +74,13 @@ Provider contracts checked against official SDK/discovery files:
 - https://github.com/facebook/facebook-python-business-sdk/blob/main/facebook_business/adobjects/page.py (`video_reels`, start/finish and `is_ai_generated`)
 - https://github.com/facebook/facebook-python-business-sdk/blob/main/facebook_business/adobjects/advideo.py (`PUBLISHED` state)
 - https://github.com/googleapis/google-api-python-client/blob/main/googleapiclient/discovery_cache/documents/youtube.v3.json (upload scopes, resumable protocol, visibility/audience/synthetic-media fields)
+
+## Two Instagram profiles
+
+Apply migration `202611120011_multiple_instagram_accounts.sql` after 009 and 010. It preserves the existing @divinework.store authorization, adds separate encrypted credentials for @travelmellon, and changes publication uniqueness to video/platform/account. Register this additional Instagram Login redirect URI in the same Meta app (keep the existing one too):
+
+`https://www.thedivinework.com/api/studio/publish/instagram/callback`
+
+Use the two named connect buttons on `/studio/publish`. Each requested username is bound to the expiring, single-use OAuth state; authorizing the wrong profile is rejected. Both accounts must be professional Instagram Business or Creator profiles and have the required app access/tester role or approved app permissions. Connecting @travelmellon does not replace @divinework.store. Select either profile or both explicitly on each approval; no default cross-post to the second profile is added. Each target has its own result and cancellation. Tokens stay server-side. Disconnect cancels queued/waiting jobs for that profile; Meta signed revocation also removes its credentials and related publication records. Active provider requests may already be in progress when disconnect is requested.
+
+The old Instagram/Runway queue remains locked and single-account. Use the owner's publishing page to manage these two connections.
