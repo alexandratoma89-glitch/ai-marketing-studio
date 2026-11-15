@@ -11,3 +11,14 @@ test('owner connection check distinguishes rejected keys and IP approval without
 test('owner connection check fails safely for missing credentials and network failures',async()=>{
  let calls=0;assert.equal((await brevoReadiness({},async()=>{calls++;throw new Error('unexpected');})).reason,'api_key_missing');assert.equal(calls,0);assert.equal((await brevoReadiness(env,async()=>{throw new Error('network secret');})).reason,'provider_connection_failed');
 });
+
+test('diagnostics identify SMTP or masked values without exposing them, and trim copied whitespace',async()=>{
+ for(const [value,kind] of [[' xsmtpsib-private-smtp-value\n','smtp_key'],['xkeysib-****','brevo_api_key'],['Divine Works Free Readings','unrecognized_format']]){
+  const result=await brevoReadiness({...env,BREVO_API_KEY:value},async(_url,options)=>{assert.equal((options?.headers as Record<string,string>)['api-key'],value.trim());return Response.json({code:'unauthorized',message:'Key not found'},{status:401});});
+  assert.equal('keyFormat' in result&&result.keyFormat?.kind,kind);assert.equal(result.reason,'api_key_rejected');assert.doesNotMatch(JSON.stringify(result),/private-smtp-value|Divine Works Free Readings/);
+ }
+});
+test('a key allowed to read senders is not declared invalid because account-read permission is restricted',async()=>{
+ const result=await brevoReadiness(env,async url=>String(url).endsWith('/account')?Response.json({message:'Insufficient scope'},{status:401}):Response.json({senders:[{email:env.BREVO_SENDER_EMAIL,active:true}]}));
+ assert.equal(result.reason,'account_read_restricted');assert.equal('apiKeyAccepted' in result&&result.apiKeyAccepted,true);assert.equal('senderActive' in result&&result.senderActive,true);
+});

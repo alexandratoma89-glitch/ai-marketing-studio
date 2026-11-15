@@ -38,3 +38,8 @@ test('delivery failure is reported as an unconfirmed free email rather than an u
  try{await requestReading(input,'ip',{store,email:{send:async()=>{throw new Error('private-provider-secret');}},generator:new DemoGenerator(),siteUrl:'https://www.thedivinework.com',verifyBot:async()=>true});assert.fail('expected send failure');}
  catch(error){const response=publicError(error);assert.equal(response.status,503);assert.deepEqual(await response.json(),{code:'reading_email_failed'});assert.equal([...store.requests.values()][0].status,'email_failed');}
 });
+
+test('free email trims incidental copied whitespace from the API key',async()=>{
+ const provider=new FreeReadingEmailProvider({...configured,BREVO_API_KEY:' \ttest-key\n'},async(_url,options)=>{assert.equal((options?.headers as Record<string,string>)['api-key'],'test-key');return Response.json({messageId:'test-receipt'});});
+ assert.equal((await provider.send(base)).status,'provider_accepted');
+});

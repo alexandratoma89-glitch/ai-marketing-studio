@@ -25,7 +25,7 @@ export class FreeReadingEmailProvider implements EmailProvider{
   if(this.env.NODE_ENV!=='production'||this.env.TAROT_EMAIL_MODE!=='live'||!freeReadingEmailConfigured(this.env))throw new Error('free_reading_email_not_ready');
   if(message.purpose!=='free_reading')throw new Error('free_reading_email_only');
   const response=await this.transport('https://api.brevo.com/v3/smtp/email',{
-   method:'POST',headers:{'api-key':this.env.BREVO_API_KEY!,'Content-Type':'application/json'},
+   method:'POST',headers:{'api-key':this.env.BREVO_API_KEY!.trim(),'Content-Type':'application/json'},
    body:JSON.stringify({...brevoPayload(message,this.env.BREVO_SENDER_EMAIL!,this.env.BREVO_REPLY_TO!),tags:['divineworks-free-reading']}),
    signal:AbortSignal.timeout(15000),redirect:'error',
   });
