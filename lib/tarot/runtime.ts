@@ -1,3 +1,4 @@
+import {FreeReadingEmailProvider} from './free-email.ts';
 import {BrevoEmailProvider} from './brevo.ts';
 import {emailConfigured} from '../launch/config.ts';
 import {createHmac,randomBytes} from 'node:crypto';
@@ -16,7 +17,7 @@ export function assertAvailable(){
 export function getDeps(){
  assertAvailable();
  if(isDemo())return {store:globalState.tarotDevStore??(globalState.tarotDevStore=new DevelopmentTarotStore()),generator:new DemoGenerator(),email:new MockEmailProvider(),verifyBot:async(token:string)=>token==='development-only',siteUrl:siteUrl()};
- return {store:productionStore(),generator:new DemoGenerator(),email:new BrevoEmailProvider('mock'),verifyBot:verifyTurnstile,siteUrl:siteUrl()};
+ return {store:productionStore(),generator:new DemoGenerator(),email:process.env.TAROT_EMAIL_MODE==='live'?new FreeReadingEmailProvider():new BrevoEmailProvider('mock'),verifyBot:verifyTurnstile,siteUrl:siteUrl()};
 }
 export function ipHash(request:Request){
  // On Vercel, this header is overwritten by the platform. Other production hosts must
@@ -33,4 +34,4 @@ export async function verifyTurnstile(token:string){
 
 export function isReadingAvailable(){if(isDemo())return true;try{assertAvailable();return true;}catch{return false;}}
 
-export function isMockDelivery(){return true;}
+export function isMockDelivery(){return isDemo()||process.env.TAROT_EMAIL_MODE!=='live';}

@@ -53,10 +53,10 @@ Leave all existing Studio, social publishing, Stripe, Brevo and encryption keys 
 
 - **Site URL:** `https://www.thedivinework.com` for production; the exact preview origin for a test project.
 - **Redirect URL:** `https://www.thedivinework.com/api/account/callback`.
-- Add the exact test preview callback and `http://localhost:3100/api/account/callback` only to the test project's allowlist.
+- Add the callback query pattern `https://www.thedivinework.com/api/account/callback?**`, the exact test preview callback and `http://localhost:3100/api/account/callback` only to the test project's allowlist.
 - Keep email confirmation enabled. Set a password policy of at least 12 characters.
 - Configure a verified SMTP sender and test signup confirmation and password reset. Default limited development mail is insufficient for production.
-- Translate Supabase signup/recovery templates using the customer's `.Data.locale`; retain the provider's `.ConfirmationURL`. The app stores locale in user metadata and profile. Never substitute a raw user-provided redirect URL in an email template.
+- Use the supplied bilingual `supabase/templates/confirmation.html` and `supabase/templates/recovery.html`. They retain Supabase token verification and select the body language using `.Data.locale`. The app stores locale in user metadata and profile. Never substitute a raw user-provided redirect URL in an email template.
 
 **Action:** Authentication → Sign-in providers → Google.
 
@@ -68,7 +68,7 @@ Test email signup → confirmation → login, Google login, logout, password res
 
 ## Booking, membership and emails
 
-Current source-level locks for live Stripe commerce and customer delivery remain disabled. Existing Stripe sandbox and mock email tests continue to run. Do not promise live booking payments, daily paid email delivery or inbox delivery based on the redesign alone.
+Live Stripe commerce and commercial customer delivery remain source-locked. Requested free readings now have a separate, gated Brevo sender; see `connect-free-website.md`. Existing Stripe sandbox and mock email tests continue to run. Do not promise live booking payments, daily paid email delivery or inbox delivery based on the redesign alone.
 
 Before live commerce, the existing business identity, VAT status, merchant terms, refund/cancellation policy, sender verification and payment/email activation review must be completed. The welcome offer retains its separate existing authorization gate; newsletter consent is never inferred from requesting it or from creating a journal account.
 

@@ -11,7 +11,7 @@ export interface Store {
  admit(request:ReadingRequest, ipHash:string):Promise<Admission>;
  update(id:string, patch:{status:DeliveryStatus;reading?:Reading;providerId?:string}):Promise<void>;
 }
-export interface EmailMessage { to:string; subject:string; html:string; text:string; requestId:string }
+export interface EmailMessage { purpose?:'free_reading'|'commerce'; to:string; subject:string; html:string; text:string; requestId:string }
 export interface EmailProvider { send(message:EmailMessage):Promise<{id:string;status:'mocked'|'provider_accepted'}> }
 export interface Generator { generate(card:Card,locale?:Locale):Promise<Reading> }
 export class PublicError extends Error { status:number; constructor(status:number, message:string){ super(message); this.status=status; } }
