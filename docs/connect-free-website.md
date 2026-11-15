@@ -23,7 +23,7 @@ These add private customer journal tables and a language field for existing orde
 
 ## 3. Connect customer accounts in Vercel
 
-In the same Supabase project, find **Project settings → Data API / API keys**. Copy the Project URL and the **public anon key**. Do not use the service-role key for a public setting.
+In the same Supabase project, find **Project settings → Data API / API keys**. Copy the Project URL and the **public anon key**. The Project URL must end at `.supabase.co` (for example, `https://PROJECT.supabase.co`), without `/rest/v1` or `/auth/v1`. Do not use the service-role key for a public setting.
 
 In Vercel → Settings → Environment Variables → Production:
 

@@ -1,3 +1,4 @@
+import {supabaseProjectUrl} from '../lib/journal/config.ts';
 // Read-only configuration/connectivity checks. No messages, accounts, charges or posts are created.
 import {emailRequirements} from '../lib/launch/config.ts';
 import {freeReadingEmailRequirements} from '../lib/tarot/free-email.ts';
@@ -11,7 +12,8 @@ for(const [name,ready] of [...emailRequirements(env),...freeReadingEmailRequirem
 check('TAROT_EMAIL_MODE=live',env.TAROT_EMAIL_MODE==='live');
 for(const name of ['JOURNAL_DATABASE_READY','PUBLIC_PLATFORM_DATABASE_READY'])check(`${name}=true`,env[name]==='true');
 check('NEXT_PUBLIC_SUPABASE_ANON_KEY',!!env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-check('Server and public Supabase URLs match',!!env.SUPABASE_URL&&(env.NEXT_PUBLIC_SUPABASE_URL??env.SUPABASE_URL)===env.SUPABASE_URL);
+check('Server Supabase URL is a project base URL',!!env.SUPABASE_URL&&supabaseProjectUrl(env.SUPABASE_URL)===env.SUPABASE_URL.replace(/\/$/,''));
+check('Server and public Supabase projects match',!!env.SUPABASE_URL&&supabaseProjectUrl(env.NEXT_PUBLIC_SUPABASE_URL??env.SUPABASE_URL)===supabaseProjectUrl(env.SUPABASE_URL));
 if(failed){console.log('Live setup is incomplete. Only setting names are shown; no secrets were printed.');process.exitCode=1;}
 else{
  async function read(url,headers={}){try{const result=await fetch(url,{headers,redirect:'error',signal:AbortSignal.timeout(10000)});if(!result.ok)return {status:result.status};return {status:result.status,data:await result.json()};}catch{return {status:0};}}
