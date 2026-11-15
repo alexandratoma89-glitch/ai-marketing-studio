@@ -3,7 +3,7 @@ const env={BREVO_API_KEY:'private-provider-key-fixture',BREVO_SENDER_EMAIL:'priv
 test('owner connection check verifies API access and sender without sending mail or exposing provider data',async()=>{
  const paths:string[]=[];
  const result=await brevoReadiness(env,async(url,options)=>{paths.push(String(url));assert.equal(options?.redirect,'error');assert.equal(options?.cache,'no-store');return Response.json(String(url).endsWith('/account')?{relay:{enabled:true},email:'account@example.com',companyName:'private company'}:{senders:[{email:env.BREVO_SENDER_EMAIL,active:true}]});});
- assert.deepEqual(paths,['https://api.brevo.com/v3/account','https://api.brevo.com/v3/senders']);assert.equal(result.reason,'connection_checked');assert.equal('senderActive' in result&&result.senderActive,true);assert.doesNotMatch(JSON.stringify(result),/private-provider|private-sender|account@example|private company/);
+ assert.deepEqual(paths,['https://api.brevo.com/v3/smtp/statistics/aggregatedReport?days=1','https://api.brevo.com/v3/account','https://api.brevo.com/v3/senders']);assert.equal(result.reason,'connection_checked');assert.equal('senderActive' in result&&result.senderActive,true);assert.doesNotMatch(JSON.stringify(result),/private-provider|private-sender|account@example|private company/);
 });
 test('owner connection check distinguishes rejected keys and IP approval without leaking raw provider errors',async()=>{
  for(const [status,message,reason] of [[401,'Key private-provider-key-fixture is invalid','api_key_rejected'],[401,'Unrecognised IP address 192.0.2.1','ip_approval_required'],[403,'Access denied','provider_access_denied']] as const){const result=await brevoReadiness(env,async()=>Response.json({message},{status}));assert.equal(result.reason,reason);assert.doesNotMatch(JSON.stringify(result),/private-provider|192\.0\.2\.1|Access denied/);}
@@ -20,5 +20,14 @@ test('diagnostics identify SMTP or masked values without exposing them, and trim
 });
 test('a key allowed to read senders is not declared invalid because account-read permission is restricted',async()=>{
  const result=await brevoReadiness(env,async url=>String(url).endsWith('/account')?Response.json({message:'Insufficient scope'},{status:401}):Response.json({senders:[{email:env.BREVO_SENDER_EMAIL,active:true}]}));
- assert.equal(result.reason,'account_read_restricted');assert.equal('apiKeyAccepted' in result&&result.apiKeyAccepted,true);assert.equal('senderActive' in result&&result.senderActive,true);
+ assert.equal(result.reason,'transactional_api_checked');assert.equal('apiKeyAccepted' in result&&result.apiKeyAccepted,true);assert.equal('senderActive' in result&&result.senderActive,true);
+});
+
+test('a transactional-only key passes its own API check while optional account and sender reads are denied',async()=>{
+ const result=await brevoReadiness(env,async url=>String(url).includes('/smtp/statistics/')?Response.json({requests:0}):Response.json({code:'permission_denied'},{status:403}));
+ assert.equal(result.reason,'transactional_api_checked');assert.equal('apiKeyAccepted' in result&&result.apiKeyAccepted,true);assert.equal('transactionalApiStatus' in result&&result.transactionalApiStatus,200);assert.equal('accountStatus' in result&&result.accountStatus,403);assert.equal('senderActive' in result&&result.senderActive,null);
+});
+test('a read-only key missing transactional permission is not mistaken for an invalid key',async()=>{
+ const result=await brevoReadiness(env,async url=>String(url).includes('/smtp/statistics/')?Response.json({code:'permission_denied'},{status:403}):Response.json({senders:[]}));
+ assert.equal(result.reason,'transactional_permission_required');assert.equal('apiKeyAccepted' in result&&result.apiKeyAccepted,true);
 });

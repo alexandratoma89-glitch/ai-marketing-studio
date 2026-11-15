@@ -1,3 +1,4 @@
+import {brevoReadiness} from '../lib/tarot/brevo-readiness.ts';
 import {supabaseProjectUrl} from '../lib/journal/config.ts';
 // Read-only configuration/connectivity checks. No messages, accounts, charges or posts are created.
 import {emailRequirements} from '../lib/launch/config.ts';
@@ -25,8 +26,10 @@ else{
  const settings=await read(`${env.SUPABASE_URL}/auth/v1/settings`,{apikey:env.NEXT_PUBLIC_SUPABASE_ANON_KEY});
  check('Auth email confirmation is required',settings.status===200&&settings.data?.mailer_autoconfirm===false);
  check('Google sign-in is enabled',settings.data?.external?.google===true);
- const senders=await read('https://api.brevo.com/v3/senders',{'api-key':env.BREVO_API_KEY});
- check('Configured Brevo sender is active',senders.status===200&&senders.data?.senders?.some(sender=>sender.email?.toLowerCase()===env.BREVO_SENDER_EMAIL.toLowerCase()&&sender.active===true));
+ const provider=await brevoReadiness(env);
+ check('Brevo transactional API access','transactionalApiStatus' in provider&&provider.transactionalApiStatus===200);
+ if('senderActive' in provider&&provider.senderActive!==null)check('Configured Brevo sender is active',provider.senderActive);
+ else console.log('REVIEW Sender read access is optional; verify the sender in Brevo dashboard.');
  const session=await read(`${env.TAROT_SITE_URL}/api/account/session`);
  check('Deployed customer accounts are configured',session.status===200&&session.data?.configured===true&&session.data?.user===null);
  console.log('These checks do not prove inbox delivery, Google approval, password reset or account deletion. Complete the live test-account journeys before launch.');

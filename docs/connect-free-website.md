@@ -145,3 +145,7 @@ Test using email addresses/accounts you control:
 - `provider_access_denied` or `transactionalEnabled: false`: check Brevo account permissions/transactional activation.
 - `senderActive: false`: verify the sender address matches the active verified sender in Brevo.
 - Provider rejections are logged as `free_reading_delivery_rejected` with HTTP status and a sanitized reason. Raw API responses, keys and addresses are not logged by this diagnostic.
+
+A scoped Brevo key needs **Transactional email → All** to send requested readings. Account and Sender read permissions are optional. A 403 on those optional checks does not prove that sending is blocked. The diagnostic now reports `transactionalApiStatus` separately; 200 verifies API access under the transactional-email scope, while actual receipt remains the delivery check.
+
+Live owner verification: the owner confirmed receiving the free-reading email after replacing an SMTP credential with a real Brevo API key. Google sign-in, journal persistence and Supabase authentication emails remain separate live checks.
