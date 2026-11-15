@@ -54,7 +54,7 @@ Leave all existing Studio, social publishing, Stripe, Brevo and encryption keys 
 - **Site URL:** `https://www.thedivinework.com` for production; the exact preview origin for a test project.
 - **Redirect URL:** `https://www.thedivinework.com/api/account/callback`.
 - Add the callback query pattern `https://www.thedivinework.com/api/account/callback?**`, the exact test preview callback and `http://localhost:3100/api/account/callback` only to the test project's allowlist.
-- Keep email confirmation enabled. Set a password policy of at least 12 characters.
+- Keep email confirmation enabled. Set a password policy of at least 6 characters.
 - Configure a verified SMTP sender and test signup confirmation and password reset. Default limited development mail is insufficient for production.
 - Use the supplied bilingual `supabase/templates/confirmation.html` and `supabase/templates/recovery.html`. They retain Supabase token verification and select the body language using `.Data.locale`. The app stores locale in user metadata and profile. Never substitute a raw user-provided redirect URL in an email template.
 

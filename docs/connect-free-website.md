@@ -46,7 +46,7 @@ Supabase → Authentication → URL Configuration:
 | Redirect URL | `https://www.thedivinework.com/api/account/callback` |
 | Redirect URL for callback query parameters | `https://www.thedivinework.com/api/account/callback?**` |
 
-Keep email confirmation enabled and set the minimum password length to 12. The application validates callback destinations and accepts only account/journal destinations on this website.
+Keep email confirmation enabled and set the minimum password length to 6. The application validates callback destinations and accepts only account/journal destinations on this website.
 
 For Google sign-in, create a separate Google Cloud OAuth **Web application** client for Supabase Auth. Copy the callback URL shown by Supabase into that client's authorized redirect URLs. Enter the new client ID/secret in **Supabase → Authentication → Sign-in providers → Google**. This is separate from the working YouTube client; do not replace the website's existing `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET`.
 

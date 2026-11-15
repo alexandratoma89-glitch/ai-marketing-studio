@@ -4,12 +4,12 @@
 <p style="color:#a18454;letter-spacing:2px">DIVINE WORKS</p>
 {{ if eq .Data.locale "ro" }}
 <h1 style="font-family:Georgia,serif;font-weight:400">O parolă nouă.</h1>
-<p>Ai solicitat resetarea parolei contului tău Divine Works. Deschide linkul pentru a alege o parolă nouă, de cel puțin 12 caractere.</p>
+<p>Ai solicitat resetarea parolei contului tău Divine Works. Deschide linkul pentru a alege o parolă nouă, de cel puțin 6 caractere.</p>
 <p><a href="{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=recovery" style="display:inline-block;padding:16px 24px;background:#382341;color:white;text-decoration:none;border-radius:4px">Resetează parola</a></p>
 <p>Dacă nu ai cerut resetarea, ignoră acest mesaj. Parola nu se schimbă fără să alegi și să salvezi una nouă.</p>
 {{ else }}
 <h1 style="font-family:Georgia,serif;font-weight:400">A fresh password.</h1>
-<p>You requested a password reset for your Divine Works account. Open the link to choose a new password with at least 12 characters.</p>
+<p>You requested a password reset for your Divine Works account. Open the link to choose a new password with at least 6 characters.</p>
 <p><a href="{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=recovery" style="display:inline-block;padding:16px 24px;background:#382341;color:white;text-decoration:none;border-radius:4px">Reset password</a></p>
 <p>If you did not request this reset, ignore this message. Your password does not change unless you choose and save a new one.</p>
 {{ end }}
