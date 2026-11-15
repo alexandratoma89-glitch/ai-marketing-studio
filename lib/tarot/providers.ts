@@ -1,3 +1,5 @@
+import {guide,interpretation} from '../public/cards.ts';
+import type {Locale} from '../public/i18n.ts';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -7,7 +9,7 @@ import type {Card} from './deck.ts';
 // Separate production activation and complete service configuration are still required.
 export const LIVE_EMAIL_AUTHORIZED=false;
 export class DemoGenerator implements Generator {
- async generate(card:Card):Promise<Reading>{return {source:'demo',meaning:`${card.name} aduce în prim-plan ${card.symbols}. În tradiția Rider–Waite–Smith, imaginile nu hotărăsc viitorul, ci deschid un spațiu în care îți poți observa propriile reacții. Privește simbolurile ca pe o invitație la reflecție, nu ca pe un verdict.`,guidance:`Acordă-ți astăzi câteva minute fără grabă. Observă ce temă din această carte se leagă de viața ta și notează un singur pas mic pe care îl poți face în acord cu valorile tale. Dacă o schimbare pare prea mare, începe cu ceea ce poți controla acum: un gând exprimat sincer, o limită blândă sau un moment de odihnă. Păstrează libertatea de a alege ce ți se potrivește.`,question:`Ce pas mic, inspirat de tema „${card.symbols.split(',')[0]}”, te-ar ajuta să te simți mai aproape de tine astăzi?`};}
+ async generate(card:Card,locale:Locale='ro'):Promise<Reading>{if(locale==='en'){const g=guide(card.id);if(!g)throw new Error('Invalid card');const reading=interpretation(g,'en');return {source:'demo',meaning:reading.general+' '+reading.upright,guidance:reading.reversed+' '+reading.symbols,question:reading.questions[2]};}return {source:'demo',meaning:`${card.name} aduce în prim-plan ${card.symbols}. În tradiția Rider–Waite–Smith, imaginile nu hotărăsc viitorul, ci deschid un spațiu în care îți poți observa propriile reacții. Privește simbolurile ca pe o invitație la reflecție, nu ca pe un verdict.`,guidance:`Acordă-ți astăzi câteva minute fără grabă. Observă ce temă din această carte se leagă de viața ta și notează un singur pas mic pe care îl poți face în acord cu valorile tale. Dacă o schimbare pare prea mare, începe cu ceea ce poți controla acum: un gând exprimat sincer, o limită blândă sau un moment de odihnă. Păstrează libertatea de a alege ce ți se potrivește.`,question:`Ce pas mic, inspirat de tema „${card.symbols.split(',')[0]}”, te-ar ajuta să te simți mai aproape de tine astăzi?`};}
 }
 export class AiGenerator implements Generator {
  private key:string;private model:string;

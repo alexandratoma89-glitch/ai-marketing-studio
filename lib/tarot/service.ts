@@ -1,5 +1,6 @@
 import {createHash,randomUUID,randomBytes} from 'node:crypto';
-import {drawCard} from './deck.ts';
+import {guide} from '../public/cards.ts';
+import {DECK,drawCard} from './deck.ts';
 import {buildEmail} from './email.ts';
 import {parseSignup,PublicError,type Store,type Generator,type EmailProvider,type ReadingRequest} from './types.ts';
 export const hashToken=(s:string)=>createHash('sha256').update(s).digest('hex');
@@ -7,14 +8,15 @@ export async function requestReading(value:unknown, ipHash:string, deps:{store:S
  const input=parseSignup(value);
  if(input.website||!(await deps.verifyBot(input.botToken)))throw new PublicError(400,'Verificarea de securitate nu a reușit. Încearcă din nou.');
  const token=input.marketingConsent?randomBytes(32).toString('hex'):undefined;
- const request:ReadingRequest={id:randomUUID(),firstName:input.firstName,email:input.email,marketingConsent:input.marketingConsent,policyVersion:input.policyVersion,card:drawCard(),status:'requested',createdAt:(deps.now?.()??new Date()).toISOString(),...(token?{consentTokenHash:hashToken(token)}:{})};
+ const chosen=input.cardId?DECK.find(c=>c.id===input.cardId)!:drawCard();const card=input.locale==='en'?{...chosen,name:guide(chosen.id)!.names.en,symbols:guide(chosen.id)!.keywords.en}:chosen;
+ const request:ReadingRequest={id:randomUUID(),firstName:input.firstName,email:input.email,marketingConsent:input.marketingConsent,policyVersion:input.policyVersion,...(input.locale?{locale:input.locale}:{}),card,status:'requested',createdAt:(deps.now?.()??new Date()).toISOString(),...(token?{consentTokenHash:hashToken(token)}:{})};
  const admitted=await deps.store.admit(request,ipHash);
  if(admitted.kind==='limited')throw new PublicError(429,'Prea multe solicitări. Încearcă din nou mai târziu.');
  // Identical public result for duplicate requests: no address enumeration or consent changes.
  if(admitted.kind==='duplicate')return {accepted:true as const};
  try {
   await deps.store.update(request.id,{status:'generating'});
-  request.reading=await deps.generator.generate(request.card);
+  request.reading=await deps.generator.generate(request.card,input.locale);
   await deps.store.update(request.id,{status:'generated',reading:request.reading});
  } catch {
   await deps.store.update(request.id,{status:'generation_failed'});

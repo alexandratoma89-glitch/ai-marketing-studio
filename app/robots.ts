@@ -1,0 +1,2 @@
+import type {MetadataRoute} from 'next';import {PUBLIC_ORIGIN} from '@/lib/public/i18n';
+export default function robots():MetadataRoute.Robots{return {rules:{userAgent:'*',allow:['/en','/ro'],disallow:['/studio','/api','/en/journal','/ro/journal','/en/account','/ro/account','/en/manage','/ro/manage','/en/confirm','/ro/confirm','/en/reading-status','/ro/reading-status']},sitemap:PUBLIC_ORIGIN+'/sitemap.xml'};}

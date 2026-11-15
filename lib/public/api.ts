@@ -1,0 +1,2 @@
+import {HttpError,noStore} from '../commerce/http.ts';import {PublicError} from '../tarot/types.ts';
+export function publicError(error:unknown){const status=error instanceof HttpError||error instanceof PublicError?error.status:503;return Response.json({code:status===403?'forbidden':status===429?'rate_limited':status===409?'unavailable':status===401?'invalid_link':status<500?'invalid_input':'service_unavailable'},{status,headers:noStore});}

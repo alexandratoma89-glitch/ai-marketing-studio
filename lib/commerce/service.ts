@@ -14,7 +14,7 @@ export async function reserveOrder(db:CommerceDb,input:Record<string,unknown>,ip
  if(order.error)throw new HttpError(order.error==='limited'?429:409,order.error==='unavailable'?'Intervalul nu mai este disponibil. Alege altul.':'Există deja o solicitare în curs sau limita de solicitări a fost atinsă.');
  const expected=order.kind==='membership'?MEMBERSHIP_BANI:order.intro_discount?FIRST_READING_BANI:PRIVATE_READING_BANI;
  if(order.currency!=='ron'||order.pricing_version!==PRICING_VERSION||order.amount!==expected){await db.command('checkout_failed',{id:order.id});throw new HttpError(503,'Prețurile de test nu sunt încă sincronizate. Nu s-a inițiat nicio plată.');}
- return {...order,email:signup.email,firstName:signup.firstName};
+ return {...order,...(signup.locale?{locale:signup.locale}:{}),email:signup.email,firstName:signup.firstName};
 }
 
 export async function cancelOrder(db:CommerceDb,stripe:import('stripe').default,order:Order){

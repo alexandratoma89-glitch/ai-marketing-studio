@@ -10,13 +10,15 @@ export const MEMBERSHIP_BANI=2900;
 export const FREE_READING_BANI=0;
 export type TaxStatus='unconfirmed'|'not_registered'|'inclusive';
 export interface TaxSnapshot {tax_status?:TaxStatus;tax_rate_id?:string|null}
-export function formatMoney(amount:number,currency:string='ron'){
+export function formatMoney(amount:number,currency:string='ron',locale:'en'|'ro'='ro'){
  if(!Number.isSafeInteger(amount)||amount<0)throw new Error('Invalid monetary amount');
  const digits=amount%100===0?0:2;
+ if(locale==='en')return new Intl.NumberFormat('en-GB',{minimumFractionDigits:digits,maximumFractionDigits:2}).format(amount/100)+' '+currency.toUpperCase();
  if(currency==='ron')return new Intl.NumberFormat('ro-RO',{minimumFractionDigits:digits,maximumFractionDigits:2}).format(amount/100)+' lei';
  return new Intl.NumberFormat('ro-RO',{style:'currency',currency:currency.toUpperCase()}).format(amount/100);
 }
-export function taxNotice(status:TaxStatus='unconfirmed'){
+export function taxNotice(status:TaxStatus='unconfirmed',locale:'en'|'ro'='ro'){
+ if(locale==='en')return status==='not_registered'?'Final price. The supplier is not VAT-registered; VAT is not charged.':status==='inclusive'?'Final price includes VAT. No extra tax is added at Checkout.':'Final test price. No extra tax is added at Checkout. VAT status is awaiting confirmation.';
  if(status==='not_registered')return 'Preț final. Furnizor neînregistrat în scopuri de TVA; nu se aplică TVA.';
  if(status==='inclusive')return 'Preț final, cu TVA inclus. Nu se adaugă taxe în Checkout.';
  return 'Preț final de test; nu se adaugă taxe în Checkout. Regimul TVA este în curs de confirmare.';
