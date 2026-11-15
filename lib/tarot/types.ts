@@ -14,7 +14,8 @@ export interface Store {
 export interface EmailMessage { purpose?:'free_reading'|'commerce'; to:string; subject:string; html:string; text:string; requestId:string }
 export interface EmailProvider { send(message:EmailMessage):Promise<{id:string;status:'mocked'|'provider_accepted'}> }
 export interface Generator { generate(card:Card,locale?:Locale):Promise<Reading> }
-export class PublicError extends Error { status:number; constructor(status:number, message:string){ super(message); this.status=status; } }
+export type ReadingFailureCode='reading_storage_failed'|'reading_generation_failed'|'reading_email_failed';
+export class PublicError extends Error {status:number;code?:ReadingFailureCode;constructor(status:number,message:string,code?:ReadingFailureCode){super(message);this.status=status;this.code=code;}}
 export function parseSignup(value:unknown): Signup {
  if(!value||typeof value!=='object')throw new PublicError(400,'Completează prenumele și adresa de email.');
  const v=value as Record<string,unknown>;

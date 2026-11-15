@@ -31,3 +31,10 @@ test('ambiguous free delivery stays recorded and cannot be retried by resubmitti
  await assert.rejects(requestReading(input,'ip',deps));await requestReading(input,'ip',deps);
  assert.equal(calls,1);assert.equal([...store.requests.values()][0].status,'email_failed');
 });
+
+test('delivery failure is reported as an unconfirmed free email rather than an unavailable paid feature',async()=>{
+ const {publicError}=await import('../public/api.ts');const store=new MemoryStore();
+ const input={firstName:'Ana',email:'reader@example.com',locale:'en',cardId:'thestar',marketingConsent:false,policyVersion:'2026-10-16.v1',botToken:'test',website:''};
+ try{await requestReading(input,'ip',{store,email:{send:async()=>{throw new Error('private-provider-secret');}},generator:new DemoGenerator(),siteUrl:'https://www.thedivinework.com',verifyBot:async()=>true});assert.fail('expected send failure');}
+ catch(error){const response=publicError(error);assert.equal(response.status,503);assert.deepEqual(await response.json(),{code:'reading_email_failed'});assert.equal([...store.requests.values()][0].status,'email_failed');}
+});

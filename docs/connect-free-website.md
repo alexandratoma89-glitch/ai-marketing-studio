@@ -134,3 +134,14 @@ Test using email addresses/accounts you control:
 8. Existing Studio sign-in and social publishing still work.
 
 `npm run check:free-launch` performs read-only configuration/connectivity checks when run with the appropriate environment settings. It prints setting names/status, never secret values. It does not replace checking real received emails and customer authentication.
+
+## Troubleshooting free email and Google login
+
+- A Google login URL containing `/rest/v1/auth/v1/authorize` means a Data API URL was entered in `NEXT_PUBLIC_SUPABASE_URL`. Use the project base URL without `/rest/v1`. Auth now normalizes the commonly copied API paths; the actual OAuth path must be `/auth/v1/authorize`.
+- A free request with `email_failed` was saved but has no confirmed delivery. This is not a purchase restriction. Do not delete requests or repeatedly resend uncertain deliveries.
+- The owner can open `/api/studio/free-email-check` with existing Studio authentication for a read-only check. It sends no emails and returns only readiness flags and sanitized provider results.
+- `api_key_rejected`: check the Vercel Brevo API key, which is separate from the SMTP password.
+- `ip_approval_required`: inspect Brevo's authorized-IP controls for the actual hosting requests.
+- `provider_access_denied` or `transactionalEnabled: false`: check Brevo account permissions/transactional activation.
+- `senderActive: false`: verify the sender address matches the active verified sender in Brevo.
+- Provider rejections are logged as `free_reading_delivery_rejected` with HTTP status and a sanitized reason. Raw API responses, keys and addresses are not logged by this diagnostic.

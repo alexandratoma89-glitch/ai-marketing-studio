@@ -10,7 +10,7 @@ export async function requestReading(value:unknown, ipHash:string, deps:{store:S
  const token=input.marketingConsent?randomBytes(32).toString('hex'):undefined;
  const chosen=input.cardId?DECK.find(c=>c.id===input.cardId)!:drawCard();const card=input.locale==='en'?{...chosen,name:guide(chosen.id)!.names.en,symbols:guide(chosen.id)!.keywords.en}:chosen;
  const request:ReadingRequest={id:randomUUID(),firstName:input.firstName,email:input.email,marketingConsent:input.marketingConsent,policyVersion:input.policyVersion,...(input.locale?{locale:input.locale}:{}),card,status:'requested',createdAt:(deps.now?.()??new Date()).toISOString(),...(token?{consentTokenHash:hashToken(token)}:{})};
- const admitted=await deps.store.admit(request,ipHash);
+ let admitted;try{admitted=await deps.store.admit(request,ipHash);}catch{throw new PublicError(503,'Solicitarea lecturii gratuite nu a putut fi salvată.','reading_storage_failed');}
  if(admitted.kind==='limited')throw new PublicError(429,'Prea multe solicitări. Încearcă din nou mai târziu.');
  // Identical public result for duplicate requests: no address enumeration or consent changes.
  if(admitted.kind==='duplicate')return {accepted:true as const};
@@ -19,8 +19,8 @@ export async function requestReading(value:unknown, ipHash:string, deps:{store:S
   request.reading=await deps.generator.generate(request.card,input.locale);
   await deps.store.update(request.id,{status:'generated',reading:request.reading});
  } catch {
-  await deps.store.update(request.id,{status:'generation_failed'});
-  throw new PublicError(503,'Interpretarea nu a putut fi pregătită. Echipa va putea verifica solicitarea; încearcă din nou mâine.');
+  await deps.store.update(request.id,{status:'generation_failed'}).catch(()=>{});
+  throw new PublicError(503,'Interpretarea nu a putut fi pregătită. Echipa va putea verifica solicitarea; încearcă din nou mâine.','reading_generation_failed');
  }
  try {
   const message=buildEmail(request,{siteUrl:deps.siteUrl,consentToken:token});
@@ -28,8 +28,8 @@ export async function requestReading(value:unknown, ipHash:string, deps:{store:S
   // Provider acceptance is NOT inbox delivery. A verified webhook records final status.
   await deps.store.update(request.id,{status:sent.status,providerId:sent.id});
  } catch {
-  await deps.store.update(request.id,{status:'email_failed'});
-  throw new PublicError(503,'Trimiterea nu a putut fi confirmată. Nu retrimite formularul; solicitarea a fost păstrată pentru verificare.');
+  await deps.store.update(request.id,{status:'email_failed'}).catch(()=>{});
+  throw new PublicError(503,'Trimiterea nu a putut fi confirmată. Nu retrimite formularul; solicitarea a fost păstrată pentru verificare.','reading_email_failed');
  }
  return {accepted:true as const};
 }

@@ -1,3 +1,4 @@
+import {brevoFailureReason} from './brevo-readiness.ts';
 import {brevoPayload} from './brevo.ts';
 import type {EmailMessage,EmailProvider} from './types.ts';
 
@@ -28,7 +29,7 @@ export class FreeReadingEmailProvider implements EmailProvider{
    body:JSON.stringify({...brevoPayload(message,this.env.BREVO_SENDER_EMAIL!,this.env.BREVO_REPLY_TO!),tags:['divineworks-free-reading']}),
    signal:AbortSignal.timeout(15000),redirect:'error',
   });
-  if(!response.ok)throw new Error('free_reading_delivery_unconfirmed');
+  if(!response.ok){const data=await response.json().catch(()=>null);console.error('free_reading_delivery_rejected',{providerStatus:response.status,reason:brevoFailureReason(response.status,data)});throw new Error('free_reading_delivery_unconfirmed');}
   const receipt=await response.json();
   if(typeof receipt.messageId!=='string'||!receipt.messageId.trim()||receipt.messageId.length>512)throw new Error('free_reading_delivery_unconfirmed');
   return {id:receipt.messageId,status:'provider_accepted' as const};
