@@ -16,6 +16,10 @@
     {
       "path": "/api/jobs/own-videos",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/jobs/marketing",
+      "schedule": "*/5 * * * *"
     }
   ]
 }
