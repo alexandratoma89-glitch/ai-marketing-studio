@@ -19,3 +19,11 @@ test('iPhone HEIC and PNG photos convert locally to JPEG, preview as photos and 
  await page.goto('/studio/publish');for(const filename of ['own-photo.heic','own-photo.png']){await page.getByLabel('Videoclip sau fotografie').setInputFiles('tests/fixtures/'+filename);await page.getByLabel('Titlu',{exact:true}).first().fill('Fotografia mea');await page.getByRole('button',{name:'Încarcă pentru revizuire'}).click();await expect.poll(()=>uploads.length,{timeout:30000}).toBe(filename.endsWith('heic')?1:2);await expect(page.getByRole('heading',{name:'Fotografia mea'})).toBeVisible();const upload=uploads.at(-1);expect(upload.type).toBe('image/jpeg');expect(upload.kind).toBe('photo');expect(upload.width).toBe(1080);expect(upload.height).toBe(1350);expect(upload.duration).toBe(0);}
  await expect(page.getByRole('checkbox',{name:'YouTube Shorts'})).toHaveCount(0);await expect(page.getByRole('checkbox',{name:'Instagram Foto · @divinework.store'})).toBeVisible();
 });
+
+test('missing or blank upload title shows an explanation without starting an upload',async({page})=>{
+ await page.setExtraHTTPHeaders({Authorization:authorization});const writes:any[]=[];
+ await page.route('**/api/studio/publish',route=>{if(route.request().method()==='GET')return route.fulfill({json:{enabled:true,schedulerConfigured:true,instagramAccounts:[],accounts:[],videos:[],publications:[]}});writes.push(route.request().postDataJSON());return route.fulfill({json:{saved:true}});});
+ await page.goto('/studio/publish');await page.getByLabel('Videoclip sau fotografie').setInputFiles('tests/fixtures/own-clip.mp4');
+ await page.getByRole('button',{name:'Încarcă pentru revizuire'}).click();await expect(page.locator('.own-studio [role=alert]')).toContainText('Completează titlul');await expect(page.getByLabel('Titlu',{exact:true})).toBeFocused();expect(writes).toEqual([]);
+ await page.getByLabel('Titlu',{exact:true}).fill('   ');await page.getByRole('button',{name:'Încarcă pentru revizuire'}).click();await expect(page.locator('.own-studio [role=alert]')).toContainText('Completează titlul');expect(writes).toEqual([]);
+});
