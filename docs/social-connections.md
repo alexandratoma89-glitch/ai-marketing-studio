@@ -5,7 +5,7 @@ Targets supplied by the owner:
 | Platform | Public account |
 |---|---|
 | Instagram | https://www.instagram.com/divinework.store/ |
-| Facebook Page | https://www.facebook.com/divinework.store |
+| Facebook Page | https://www.facebook.com/1380665061793597 |
 | TikTok | https://www.tiktok.com/@divinework.store |
 | YouTube | https://www.youtube.com/@divine-work |
 
