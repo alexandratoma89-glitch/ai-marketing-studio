@@ -1,0 +1,45 @@
+name: Website scheduled jobs
+
+on:
+  schedule:
+    # Every five minutes, offset from the busiest minute of the hour.
+    - cron: '2-59/5 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: website-scheduled-jobs
+  cancel-in-progress: false
+
+jobs:
+  process-approved-work:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      SCHEDULER_SECRET: ${{ secrets.SCHEDULER_SECRET }}
+    steps:
+      - name: Process existing website queues
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${#SCHEDULER_SECRET}" -lt 32 ]; then
+            echo "::notice::Scheduler is inactive. Add the SCHEDULER_SECRET repository secret and the matching Production variable in Vercel."
+            exit 0
+          fi
+          failed=0
+          for job in instagram runway own-videos marketing; do
+            status=$(curl --silent --show-error --proto '=https' \
+              --connect-timeout 15 --max-time 140 \
+              --output /dev/null --write-out '%{http_code}' \
+              --header "Authorization: Bearer ${SCHEDULER_SECRET}" \
+              "https://www.thedivinework.com/api/jobs/${job}" || true)
+            if [ "$status" = "200" ]; then
+              echo "${job}: accepted"
+            else
+              echo "::error::${job}: HTTP ${status:-unavailable}. Check the website configuration. No response body or credentials are logged."
+              failed=1
+            fi
+          done
+          exit "$failed"

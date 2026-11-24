@@ -59,7 +59,7 @@ Keep the existing Transactional email webhook unchanged. Marketing event names a
 Open `https://www.thedivinework.com/studio/marketing` and sign in with the existing private Studio username/password.
 
 1. Every configuration check should show ✓. These checks indicate configuration presence, not provider permission acceptance.
-2. Click **Sincronizează acum**. Check that errors are 0 and pending changes reach 0. The automatic cron also runs every five minutes, processing up to three changes per run, removals first. Repeat manual sync for a larger backlog. Failed/uncertain changes stay queued; no addresses appear in the UI/logs.
+2. Click **Sincronizează acum**. Check that errors are 0 and pending changes reach 0. After completing [the external scheduler setup](free-scheduler-setup.md), automatic synchronization runs roughly every five minutes, processing up to three changes per run, removals first. Repeat manual sync for a larger backlog. Failed/uncertain changes stay queued; no addresses appear in the UI/logs.
 3. Confirm using one owned test address: submit the free-reading form with optional marketing consent, follow its confirmation link, sync and verify list membership in Brevo. An unconfirmed or unchecked address must stay out.
 4. Withdraw consent using the original email link; sync and verify removal. Repeated webhook deliveries are safe. A Brevo unsubscribe blocks the address immediately within Brevo and queues local list removal.
 5. Write a subject and message in Studio. Preview the text. **Creează ciornă în Brevo** creates a draft only, with no schedule or send call. The remote list is checked against eligible synced addresses before draft creation. The draft includes operator/contact details, privacy links and Brevo's unsubscribe link.

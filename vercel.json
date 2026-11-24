@@ -3,23 +3,5 @@
   "framework": "nextjs",
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "crons": [
-    {
-      "path": "/api/jobs/instagram",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/jobs/runway",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/jobs/own-videos",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/jobs/marketing",
-      "schedule": "*/5 * * * *"
-    }
-  ]
+  "outputDirectory": ".next"
 }
